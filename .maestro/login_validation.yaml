@@ -1,0 +1,9 @@
+appId: com.camphubph.camper
+---
+- launchApp
+- tapOn: "Log in"
+- tapOn:
+    text: "Log in"
+    index: 1
+- assertVisible: "Enter your email address."
+- assertVisible: "Enter your password."

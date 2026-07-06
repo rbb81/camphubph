@@ -2,7 +2,7 @@
 
 Camper is a camping-community app for the Philippines — discover camps, share trips, and connect with other campers. Built with Flutter so the same codebase targets web, Android, and iOS. Product/UX planning docs live in [`docs/`](docs/).
 
-Currently implemented: the registration screen (responsive, web + mobile), wired to Supabase Auth.
+Currently implemented: registration, login, and forgot-password screens (responsive, web + mobile), wired to Supabase Auth.
 
 ## Prerequisites
 
@@ -37,7 +37,7 @@ Currently implemented: the registration screen (responsive, web + mobile), wired
    flutter run -d chrome --dart-define-from-file=.env
    ```
 
-5. Once it opens, click **Create your account** to reach the registration screen at `/#/register`.
+5. Once it opens, click **Create your account** to reach `/#/register`, or **Log in** to reach `/#/login` (which links to `/#/forgot-password`).
 
 Values are read via `String.fromEnvironment` in [`lib/config/env.dart`](lib/config/env.dart) — if you forget `--dart-define-from-file`, the app still runs but the registration form will show a "Supabase isn't configured" error instead of silently failing.
 
@@ -51,12 +51,13 @@ flutter run -d <device-id> --dart-define-from-file=.env
 
 Run `flutter devices` to list available targets.
 
-## Debugging registration
+## Debugging auth
 
-- Sign-ups call `Supabase.instance.client.auth.signUp` (see [`lib/screens/register_screen.dart`](lib/screens/register_screen.dart)).
-- Supabase's default email-confirmation flow applies: after signing up, check **Authentication → Users** in the Supabase dashboard to see the new (unconfirmed) user, and **Authentication → Logs** if the confirmation email doesn't show up.
-- To skip email confirmation while developing, toggle it off under **Authentication → Providers → Email → Confirm email** in the Supabase dashboard.
-- Supabase is initialized once in [`lib/main.dart`](lib/main.dart); it's skipped entirely (not crash-on-missing-config) if `.env` values aren't provided, so `flutter run` without `--dart-define-from-file` still boots the UI for layout/debugging.
+- Sign-ups call `Supabase.instance.client.auth.signUp` (see [`lib/screens/register_screen.dart`](lib/screens/register_screen.dart)); login calls `auth.signInWithPassword` ([`lib/screens/login_screen.dart`](lib/screens/login_screen.dart)); forgot-password calls `auth.resetPasswordForEmail` ([`lib/screens/forgot_password_screen.dart`](lib/screens/forgot_password_screen.dart)). All three share the responsive layout and error/loading UI in [`lib/widgets/auth_layout.dart`](lib/widgets/auth_layout.dart).
+- Supabase's default email-confirmation flow applies: after signing up, check **Authentication → Users** in the Supabase dashboard to see the new (unconfirmed) user, and **Authentication → Logs** if a confirmation or password-reset email doesn't show up.
+- To skip email confirmation while developing, toggle it off under **Authentication → Providers → Email → Confirm email** in the Supabase dashboard — otherwise login will fail for an unconfirmed account with an "Email not confirmed" error.
+- Supabase is initialized once in [`lib/main.dart`](lib/main.dart); it's skipped entirely (not crash-on-missing-config) if `.env` values aren't provided, so `flutter run` without `--dart-define-from-file` still boots the UI for layout/debugging (all three auth screens show a "Supabase isn't configured" error on submit instead).
+- After a successful login, the app navigates to `/` and clears the auth screens from the back stack — there's no dashboard/home screen yet, so this just lands back on the landing page.
 
 ## Testing
 
@@ -74,13 +75,11 @@ To run a single file:
 flutter test test/register_screen_test.dart
 ```
 
-Covers (see [`test/register_screen_test.dart`](test/register_screen_test.dart)):
-- required-field validation errors on empty submit
-- invalid email format
-- mismatched password / confirm password
-- a fully valid submit when Supabase isn't configured (asserts the friendly config error instead of a crash)
-
-[`test/widget_test.dart`](test/widget_test.dart) covers the landing screen → registration navigation.
+Covers:
+- [`test/register_screen_test.dart`](test/register_screen_test.dart) — required-field errors, invalid email format, mismatched password/confirm password, and a fully valid submit when Supabase isn't configured (asserts the friendly config error instead of a crash)
+- [`test/login_screen_test.dart`](test/login_screen_test.dart) — required-field errors, invalid email format, valid-but-unconfigured submit, navigation to `/forgot-password` and `/register`
+- [`test/forgot_password_screen_test.dart`](test/forgot_password_screen_test.dart) — empty/invalid email validation, valid-but-unconfigured submit, navigation back to `/login`
+- [`test/widget_test.dart`](test/widget_test.dart) — landing screen → registration navigation
 
 ### 2. Maestro end-to-end flows
 
@@ -117,6 +116,13 @@ On Windows, run that inside WSL or Git Bash, then make sure `~/.maestro/bin` (or
 
    Fills a valid form and submits for real — the device must be running a build with real Supabase credentials (step 1 above with `.env` filled in), since it asserts the "Check your email" success state.
 
+   ```bash
+   maestro test .maestro/login_validation.yaml
+   maestro test .maestro/forgot_password_validation.yaml
+   ```
+
+   Both are validation-only (no Supabase call), so they work without a configured `.env`. There's no login/forgot-password "happy path" flow, since that would need a pre-existing confirmed test account seeded in Supabase rather than just a valid-looking form.
+
 3. To run every flow in the folder at once:
 
    ```bash
@@ -143,18 +149,17 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    chromedriver --port=4444
    ```
 
-3. In another terminal, run the flow. Run it **without** `--dart-define-from-file` so Supabase is intentionally left unconfigured — the test asserts the graceful "Supabase isn't configured" fallback, the same case the unit tests cover, but through a real browser instead of the widget-test harness:
+3. In another terminal, run a flow. Run these **without** `--dart-define-from-file` so Supabase is intentionally left unconfigured — each test asserts the graceful "Supabase isn't configured" fallback, the same case the unit tests cover, but through a real browser instead of the widget-test harness:
 
    ```bash
-   flutter drive \
-     --driver=test_driver/integration_test.dart \
-     --target=integration_test/register_test.dart \
-     -d chrome
+   flutter drive --driver=test_driver/integration_test.dart --target=integration_test/register_test.dart -d chrome
+   flutter drive --driver=test_driver/integration_test.dart --target=integration_test/login_test.dart -d chrome
+   flutter drive --driver=test_driver/integration_test.dart --target=integration_test/forgot_password_test.dart -d chrome
    ```
 
-   This opens an actual Chrome window, taps through from the landing page to `/register`, submits an empty form and checks all four validation messages, then fills a fully valid form and confirms the config-error fallback shows up instead of a crash.
+   Each opens an actual Chrome window, navigates from the landing page to the relevant screen, submits an empty form and checks the validation messages, then fills a fully valid form and confirms the config-error fallback shows up instead of a crash. All three were run and passed in this environment against a real Chrome window (chromedriver 149.x).
 
-See [`integration_test/register_test.dart`](integration_test/register_test.dart) and the driver shim at [`test_driver/integration_test.dart`](test_driver/integration_test.dart).
+See [`integration_test/`](integration_test/) and the driver shim at [`test_driver/integration_test.dart`](test_driver/integration_test.dart).
 
 ## Deployment
 
@@ -187,7 +192,8 @@ The job installs Flutter, runs `flutter analyze` and `flutter test` first (deplo
 lib/main.dart               app entry point, theme + routes
 lib/config/env.dart         reads SUPABASE_URL / SUPABASE_ANON_KEY
 lib/theme/app_theme.dart    light/dark theme (nature-inspired palette)
-lib/screens/                landing + registration screens
+lib/widgets/auth_layout.dart shared layout for register/login/forgot-password
+lib/screens/                landing, registration, login, forgot-password screens
 test/                       unit/widget tests
 integration_test/           Flutter driver end-to-end tests (web)
 test_driver/                driver shim for integration_test on web

@@ -4,39 +4,31 @@ import '../config/env.dart';
 import '../theme/app_theme.dart';
 import '../widgets/auth_layout.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
 
-  bool _acceptedTerms = false;
-  bool _termsTouched = false;
   bool _submitting = false;
   String? _formError;
-  String? _submittedEmail;
 
   @override
   void dispose() {
-    _fullNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
-    setState(() => _termsTouched = true);
     final formValid = _formKey.currentState?.validate() ?? false;
-    if (!formValid || !_acceptedTerms) return;
+    if (!formValid) return;
 
     if (!Env.isConfigured) {
       setState(() {
@@ -53,12 +45,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      await Supabase.instance.client.auth.signUp(
+      await Supabase.instance.client.auth.signInWithPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
-        data: {'full_name': _fullNameController.text.trim()},
       );
-      setState(() => _submittedEmail = _emailController.text.trim());
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+      }
     } on AuthException catch (e) {
       setState(() => _formError = e.message);
     } catch (_) {
@@ -72,16 +65,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AuthScaffold(
-      builder: (context) => _submittedEmail != null
-          ? InfoPanel(
-              title: 'Check your email',
-              message:
-                  'We sent a confirmation link to $_submittedEmail. Confirm '
-                  'your address to finish creating your account.',
-            )
-          : _buildForm(context),
-    );
+    return AuthScaffold(builder: (context) => _buildForm(context));
   }
 
   Widget _buildForm(BuildContext context) {
@@ -94,14 +78,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Create your account',
+            'Log in',
             style: Theme.of(
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 4),
           Text(
-            'Start planning your next camping trip.',
+            'Pick up where you left off.',
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
@@ -111,17 +95,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             FormErrorBanner(_formError!),
             const SizedBox(height: 16),
           ],
-          fieldLabel(context, 'Full name'),
-          TextFormField(
-            key: const Key('fullNameField'),
-            controller: _fullNameController,
-            autofillHints: const [AutofillHints.name],
-            decoration: const InputDecoration(hintText: 'Jasmine Reyes'),
-            validator: (value) => (value == null || value.trim().isEmpty)
-                ? 'Enter your full name.'
-                : null,
-          ),
-          const SizedBox(height: 16),
           fieldLabel(context, 'Email'),
           TextFormField(
             key: const Key('emailField'),
@@ -146,62 +119,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
             key: const Key('passwordField'),
             controller: _passwordController,
             obscureText: true,
-            autofillHints: const [AutofillHints.newPassword],
-            decoration: const InputDecoration(hintText: 'At least 8 characters'),
-            validator: (value) => (value == null || value.length < 8)
-                ? 'Use at least 8 characters.'
+            autofillHints: const [AutofillHints.password],
+            decoration: const InputDecoration(hintText: 'Your password'),
+            validator: (value) => (value == null || value.isEmpty)
+                ? 'Enter your password.'
                 : null,
           ),
-          const SizedBox(height: 16),
-          fieldLabel(context, 'Confirm password'),
-          TextFormField(
-            key: const Key('confirmPasswordField'),
-            controller: _confirmPasswordController,
-            obscureText: true,
-            autofillHints: const [AutofillHints.newPassword],
-            decoration: const InputDecoration(hintText: 'Re-enter your password'),
-            validator: (value) => (value != _passwordController.text)
-                ? "Passwords don't match."
-                : null,
-          ),
-          const SizedBox(height: 16),
-          InkWell(
-            onTap: () => setState(() {
-              _acceptedTerms = !_acceptedTerms;
-              _termsTouched = true;
-            }),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Checkbox(
-                  key: const Key('termsCheckbox'),
-                  value: _acceptedTerms,
-                  onChanged: (value) => setState(() {
-                    _acceptedTerms = value ?? false;
-                    _termsTouched = true;
-                  }),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 14),
-                    child: Text(
-                      'I agree to the terms of service and privacy policy.',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (_termsTouched && !_acceptedTerms)
-            const Padding(
-              padding: EdgeInsets.only(left: 44, top: 2),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: InkWell(
+              onTap: () =>
+                  Navigator.of(context).pushNamed('/forgot-password'),
               child: Text(
-                'You need to accept the terms to continue.',
-                style: TextStyle(color: AppColors.danger, fontSize: 12),
+                'Forgot password?',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? AppColors.forestDark : AppColors.forest,
+                ),
               ),
             ),
+          ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -216,7 +155,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         color: Colors.white,
                       ),
                     )
-                  : const Text('Create account'),
+                  : const Text('Log in'),
             ),
           ),
           const SizedBox(height: 24),
@@ -225,15 +164,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
               alignment: WrapAlignment.center,
               children: [
                 Text(
-                  'Already have an account? ',
+                  "Don't have an account? ",
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall?.copyWith(color: Colors.grey),
                 ),
                 InkWell(
-                  onTap: () => Navigator.of(context).pushReplacementNamed('/login'),
+                  onTap: () =>
+                      Navigator.of(context).pushReplacementNamed('/register'),
                   child: Text(
-                    'Log in',
+                    'Sign up',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,

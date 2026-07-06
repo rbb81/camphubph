@@ -48,6 +48,31 @@ class LandingScreen extends StatelessWidget {
                       child: const Text('Create your account'),
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: Wrap(
+                      alignment: WrapAlignment.center,
+                      children: [
+                        Text(
+                          'Already have an account? ',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                        ),
+                        InkWell(
+                          onTap: () => Navigator.of(context).pushNamed('/login'),
+                          child: Text(
+                            'Log in',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.forest,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
