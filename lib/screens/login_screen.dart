@@ -127,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? AppColors.forestDark : AppColors.forest,
+                  color: isDark ? AppColors.brandDark : AppColors.brand,
                 ),
               ),
             ),
@@ -168,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: isDark ? AppColors.forestDark : AppColors.forest,
+                      color: isDark ? AppColors.brandDark : AppColors.brand,
                     ),
                   ),
                 ),

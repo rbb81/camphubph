@@ -4,23 +4,23 @@ import 'package:google_fonts/google_fonts.dart';
 class AppColors {
   AppColors._();
 
-  static const forest = Color(0xFF0F6E56);
-  static const forestStrong = Color(0xFF085041);
-  static const ember = Color(0xFFD85A30);
+  static const brand = Color(0xFF3557E8);
+  static const brandStrong = Color(0xFF1B2A63);
+  static const gold = Color(0xFFFFC94D);
   static const danger = Color(0xFFB3261E);
 
-  static const backgroundLight = Color(0xFFFBFAF6);
+  static const backgroundLight = Color(0xFFF6F7FC);
   static const surfaceLight = Color(0xFFFFFFFF);
-  static const surfaceMutedLight = Color(0xFFF1F1EA);
-  static const borderLight = Color(0xFFDEDCD0);
-  static const foregroundLight = Color(0xFF1C211D);
+  static const surfaceMutedLight = Color(0xFFEEF1FB);
+  static const borderLight = Color(0xFFE2E6F5);
+  static const foregroundLight = Color(0xFF12183A);
 
-  static const backgroundDark = Color(0xFF10130F);
-  static const surfaceDark = Color(0xFF191D17);
-  static const surfaceMutedDark = Color(0xFF20241D);
-  static const borderDark = Color(0xFF333830);
-  static const foregroundDark = Color(0xFFECEFE9);
-  static const forestDark = Color(0xFF5DCAA5);
+  static const backgroundDark = Color(0xFF0B1030);
+  static const surfaceDark = Color(0xFF141B45);
+  static const surfaceMutedDark = Color(0xFF1B2456);
+  static const borderDark = Color(0xFF262F66);
+  static const foregroundDark = Color(0xFFEDEFFA);
+  static const brandDark = Color(0xFF5B7CFF);
 }
 
 class AppTheme {
@@ -32,7 +32,7 @@ class AppTheme {
     surface: AppColors.surfaceLight,
     border: AppColors.borderLight,
     foreground: AppColors.foregroundLight,
-    accent: AppColors.forest,
+    accent: AppColors.brand,
   );
 
   static ThemeData get dark => _build(
@@ -41,7 +41,7 @@ class AppTheme {
     surface: AppColors.surfaceDark,
     border: AppColors.borderDark,
     foreground: AppColors.foregroundDark,
-    accent: AppColors.forestDark,
+    accent: AppColors.brandDark,
   );
 
   static ThemeData _build({
@@ -62,9 +62,9 @@ class AppTheme {
       brightness: brightness,
       scaffoldBackgroundColor: background,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.forest,
+        seedColor: AppColors.brand,
         brightness: brightness,
-      ).copyWith(primary: accent, secondary: AppColors.ember, error: AppColors.danger),
+      ).copyWith(primary: accent, secondary: AppColors.gold, error: AppColors.danger),
       textTheme: textTheme,
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

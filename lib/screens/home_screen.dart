@@ -118,14 +118,14 @@ class _Avatar extends StatelessWidget {
     return CircleAvatar(
       radius: 18,
       backgroundColor: isDark
-          ? AppColors.forestDark.withValues(alpha: 0.25)
-          : AppColors.forest.withValues(alpha: 0.12),
+          ? AppColors.brandDark.withValues(alpha: 0.25)
+          : AppColors.brand.withValues(alpha: 0.12),
       child: Text(
         initials,
         style: TextStyle(
           fontWeight: FontWeight.w500,
           fontSize: 13,
-          color: isDark ? AppColors.forestDark : AppColors.forest,
+          color: isDark ? AppColors.brandDark : AppColors.brand,
         ),
       ),
     );
@@ -206,13 +206,13 @@ class _RecommendedCampCard extends StatelessWidget {
             height: 48,
             decoration: BoxDecoration(
               color: isDark
-                  ? AppColors.forestDark.withValues(alpha: 0.2)
-                  : AppColors.forest.withValues(alpha: 0.1),
+                  ? AppColors.brandDark.withValues(alpha: 0.2)
+                  : AppColors.brand.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               Icons.terrain,
-              color: isDark ? AppColors.forestDark : AppColors.forest,
+              color: isDark ? AppColors.brandDark : AppColors.brand,
             ),
           ),
           const SizedBox(width: 12),
@@ -236,7 +236,7 @@ class _RecommendedCampCard extends StatelessWidget {
           ),
           Row(
             children: [
-              const Icon(Icons.star, size: 16, color: AppColors.ember),
+              const Icon(Icons.star, size: 16, color: AppColors.gold),
               const SizedBox(width: 2),
               Text(item.rating.toStringAsFixed(1)),
             ],
@@ -255,7 +255,7 @@ class _CommunityPostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = isDark ? AppColors.forestDark : AppColors.forest;
+    final accent = isDark ? AppColors.brandDark : AppColors.brand;
 
     return _Card(
       child: Column(
@@ -290,7 +290,7 @@ class _TipCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.tips_and_updates_outlined, color: AppColors.ember),
+          const Icon(Icons.tips_and_updates_outlined, color: AppColors.gold),
           const SizedBox(width: 10),
           Expanded(child: Text(item.tip)),
         ],

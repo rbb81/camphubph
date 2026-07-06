@@ -21,7 +21,7 @@ class LandingScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.forest,
+                      color: AppColors.brand,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -66,7 +66,7 @@ class LandingScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.forest,
+                              color: AppColors.brand,
                             ),
                           ),
                         ),

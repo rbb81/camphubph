@@ -33,7 +33,7 @@ class AuthScaffold extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
-                          color: isDark ? AppColors.forestDark : AppColors.forest,
+                          color: isDark ? AppColors.brandDark : AppColors.brand,
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -78,7 +78,7 @@ class BrandPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final panelColor = isDark ? AppColors.forestStrong : AppColors.forest;
+    final panelColor = isDark ? AppColors.brandStrong : AppColors.brand;
 
     return Container(
       color: panelColor,

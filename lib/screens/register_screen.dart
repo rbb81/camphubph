@@ -228,7 +228,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: isDark ? AppColors.forestDark : AppColors.forest,
+                      color: isDark ? AppColors.brandDark : AppColors.brand,
                     ),
                   ),
                 ),
