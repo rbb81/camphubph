@@ -1,0 +1,21 @@
+# Home is only reachable after a real login, so unlike the other flows in
+# this folder this one needs a pre-existing, email-confirmed Supabase test
+# account. Run with:
+#   maestro test -e MAESTRO_TEST_EMAIL=you@example.com -e MAESTRO_TEST_PASSWORD=yourpassword .maestro/home_smoke.yaml
+appId: com.camphubph.camper
+---
+- launchApp
+- tapOn: "Log in"
+- tapOn: "name@example.com"
+- inputText: ${MAESTRO_TEST_EMAIL}
+- tapOn: "Your password"
+- inputText: ${MAESTRO_TEST_PASSWORD}
+- tapOn:
+    text: "Log in"
+    index: 1
+- assertVisible: "Camper"
+- assertVisible: "Recommended near you"
+- assertVisible: "Home"
+- assertVisible: "Discover"
+- tapOn: "Discover"
+- assertVisible: "Discover is coming soon."

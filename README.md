@@ -2,7 +2,7 @@
 
 Camper is a camping-community app for the Philippines — discover camps, share trips, and connect with other campers. Built with Flutter so the same codebase targets web, Android, and iOS. Product/UX planning docs live in [`docs/`](docs/).
 
-Currently implemented: registration, login, and forgot-password screens (responsive, web + mobile), wired to Supabase Auth.
+Currently implemented: registration, login, and forgot-password screens (responsive, web + mobile) wired to Supabase Auth, plus a Home Feed screen (mixed feed, bottom tab bar, per [docs/ux/wireframes.md](docs/ux/wireframes.md)) shown after a successful login.
 
 ## Prerequisites
 
@@ -57,7 +57,13 @@ Run `flutter devices` to list available targets.
 - Supabase's default email-confirmation flow applies: after signing up, check **Authentication → Users** in the Supabase dashboard to see the new (unconfirmed) user, and **Authentication → Logs** if a confirmation or password-reset email doesn't show up.
 - To skip email confirmation while developing, toggle it off under **Authentication → Providers → Email → Confirm email** in the Supabase dashboard — otherwise login will fail for an unconfirmed account with an "Email not confirmed" error.
 - Supabase is initialized once in [`lib/main.dart`](lib/main.dart); it's skipped entirely (not crash-on-missing-config) if `.env` values aren't provided, so `flutter run` without `--dart-define-from-file` still boots the UI for layout/debugging (all three auth screens show a "Supabase isn't configured" error on submit instead).
-- After a successful login, the app navigates to `/` and clears the auth screens from the back stack — there's no dashboard/home screen yet, so this just lands back on the landing page.
+- After a successful login, the app navigates to `/home` and clears the auth screens from the back stack.
+
+## Home Feed
+
+[`lib/screens/home_screen.dart`](lib/screens/home_screen.dart) is the post-login destination — a mixed feed (friend posts, recommended camps, community posts, tips, suggested users) with a top bar (search/notifications, both stubbed) and a bottom tab bar (only **Home** is implemented; **Discover**, **Map**, **Communities**, **Profile** show a "coming soon" message, per [docs/ux/wireframes.md](docs/ux/wireframes.md)).
+
+There's no `posts`/`camps` schema in Supabase yet, so the feed renders from static sample data in [`lib/data/sample_feed.dart`](lib/data/sample_feed.dart) (modeled by [`lib/models/home_feed_item.dart`](lib/models/home_feed_item.dart)) rather than a real query — swap that out once the database schema exists.
 
 ## Testing
 
@@ -79,6 +85,7 @@ Covers:
 - [`test/register_screen_test.dart`](test/register_screen_test.dart) — required-field errors, invalid email format, mismatched password/confirm password, and a fully valid submit when Supabase isn't configured (asserts the friendly config error instead of a crash)
 - [`test/login_screen_test.dart`](test/login_screen_test.dart) — required-field errors, invalid email format, valid-but-unconfigured submit, navigation to `/forgot-password` and `/register`
 - [`test/forgot_password_screen_test.dart`](test/forgot_password_screen_test.dart) — empty/invalid email validation, valid-but-unconfigured submit, navigation back to `/login`
+- [`test/home_screen_test.dart`](test/home_screen_test.dart) — app bar/bottom tab bar render, mixed feed content renders, "coming soon" messages for unbuilt tabs/search/create-post
 - [`test/widget_test.dart`](test/widget_test.dart) — landing screen → registration navigation
 
 ### 2. Maestro end-to-end flows
@@ -123,6 +130,12 @@ On Windows, run that inside WSL or Git Bash, then make sure `~/.maestro/bin` (or
 
    Both are validation-only (no Supabase call), so they work without a configured `.env`. There's no login/forgot-password "happy path" flow, since that would need a pre-existing confirmed test account seeded in Supabase rather than just a valid-looking form.
 
+   ```bash
+   maestro test -e MAESTRO_TEST_EMAIL=you@example.com -e MAESTRO_TEST_PASSWORD=yourpassword .maestro/home_smoke.yaml
+   ```
+
+   Home is only reachable after a real login, so this one needs a pre-existing, **email-confirmed** Supabase test account — pass its credentials via `-e` flags (see the comment at the top of [`.maestro/home_smoke.yaml`](.maestro/home_smoke.yaml)). It logs in for real, then asserts the feed and tab bar render and that tapping an unimplemented tab shows its "coming soon" message.
+
 3. To run every flow in the folder at once:
 
    ```bash
@@ -159,6 +172,12 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
 
    Each opens an actual Chrome window, navigates from the landing page to the relevant screen, submits an empty form and checks the validation messages, then fills a fully valid form and confirms the config-error fallback shows up instead of a crash. All three were run and passed in this environment against a real Chrome window (chromedriver 149.x).
 
+   ```bash
+   flutter drive --driver=test_driver/integration_test.dart --target=integration_test/home_test.dart -d chrome
+   ```
+
+   Pumps `HomeScreen` directly rather than going through a real login (same reasoning as the Maestro `home_smoke.yaml` flow — reaching it for real needs a seeded account), and checks the feed renders plus the search/create-post/tab-bar "coming soon" messages. Also run and passed here against a real Chrome window.
+
 See [`integration_test/`](integration_test/) and the driver shim at [`test_driver/integration_test.dart`](test_driver/integration_test.dart).
 
 ## Deployment
@@ -193,7 +212,9 @@ lib/main.dart               app entry point, theme + routes
 lib/config/env.dart         reads SUPABASE_URL / SUPABASE_ANON_KEY
 lib/theme/app_theme.dart    light/dark theme (nature-inspired palette)
 lib/widgets/auth_layout.dart shared layout for register/login/forgot-password
-lib/screens/                landing, registration, login, forgot-password screens
+lib/screens/                landing, registration, login, forgot-password, home screens
+lib/models/home_feed_item.dart Home Feed content types
+lib/data/sample_feed.dart   placeholder Home Feed content (no posts/camps schema yet)
 test/                       unit/widget tests
 integration_test/           Flutter driver end-to-end tests (web)
 test_driver/                driver shim for integration_test on web

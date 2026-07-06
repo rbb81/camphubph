@@ -50,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
       if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+        Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
       }
     } on AuthException catch (e) {
       setState(() => _formError = e.message);
