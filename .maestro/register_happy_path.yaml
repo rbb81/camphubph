@@ -1,0 +1,17 @@
+# Requires the app to be built/installed with real Supabase credentials
+# (--dart-define-from-file=.env), since it exercises an actual signUp call.
+appId: com.camphubph.camper
+---
+- launchApp
+- tapOn: "Create your account"
+- tapOn: "Jasmine Reyes"
+- inputText: "Maestro Test"
+- tapOn: "name@example.com"
+- inputText: "maestro-test@example.com"
+- tapOn: "At least 8 characters"
+- inputText: "password123"
+- tapOn: "Re-enter your password"
+- inputText: "password123"
+- tapOn: "I agree to the terms of service and privacy policy."
+- tapOn: "Create account"
+- assertVisible: "Check your email"

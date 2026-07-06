@@ -1,0 +1,120 @@
+# Information Architecture
+
+This document defines the full screen inventory, content hierarchy for the complex screens, and a plain-language entity map. It is conceptual — a formal database schema and API design are separate, later deliverables.
+
+## 1. Full Screen Inventory
+
+**Onboarding & Auth**
+- Splash Screen
+- Onboarding (value prop carousel)
+- Login
+- Registration
+- Forgot Password
+
+**Core (tab-level)**
+- Home Feed
+- Discover
+- Map
+- Communities (list of joined/suggested communities)
+- Profile (own profile)
+
+**Search & Discovery**
+- Search (global)
+- Camp Details
+- Photo Gallery (per-camp or per-profile)
+
+**Social**
+- Create Post
+- Post Details
+- Notifications
+- Messages (inbox + thread)
+
+**Communities (drill-down)**
+- Community Feed
+- Community Rules
+- Community Members
+- Community Moderators (mod-only view)
+
+**Profile & Personal Collections**
+- Settings
+- Saved Camps
+- Wishlist
+- Completed Trips
+- Reviews (list + write/edit)
+
+**Trip Planning**
+- Trip Planner (list of trips)
+- Trip Detail (destinations, dates, invited friends, checklist, status)
+
+## 2. Content Hierarchy for Complex Screens
+
+### Home Feed
+A single mixed-content stream, in roughly this priority order per session:
+1. Friends' posts (people the user follows)
+2. Community posts (from joined communities)
+3. Recommended camps (personalized, based on saved/reviewed history)
+4. Nearby camps (based on location, if permitted)
+5. Trending destinations
+6. Popular photos (visual, high-engagement content)
+7. Camping tips (short-form advice cards)
+8. Events (community/regional meetups)
+9. Camping news
+10. Suggested users (follow suggestions, interleaved periodically, not stacked)
+
+Design implication: this is a ranked/blended feed, not chronological-only — needs a lightweight scoring or interleaving rule (e.g. every N items, insert one non-post card: recommendation, trending, tip, event, or suggested user).
+
+### Discover
+Grid/list of category tiles, each leading to a filtered Camp list:
+- Mountains, Beaches, Lakes, Forests, Rivers, Camping Grounds, Glamping, Overlanding, Pet Friendly, Family Friendly, Weekend Getaways, Budget Friendly
+
+Categories are not mutually exclusive (a camp can be both "Beach" and "Family Friendly") — implies many-to-many tagging, not a single category field.
+
+### Search
+Unified search bar with scoped results, tabbed or sectioned by entity type:
+- Camp, Mountain, Beach, Lake, Community, User, Province, City, Activity
+
+Design implication: search must support entity-type filters and free-text matching across multiple content types from one input.
+
+### Map
+Interactive map with togglable layers/filters:
+- Camping locations, Mountains, Beaches, Lakes, Trails, Waterfalls, Nearby attractions
+
+Tapping a pin opens a preview card → Camp Details. Filter control lets users toggle categories on/off (multi-select, not single-select).
+
+### Communities → Community Feed
+- **Communities (list):** joined communities, suggested/discoverable communities, search
+- **Community Feed:** pinned posts (top, always visible), then chronological/ranked posts
+- **Rules:** always accessible, typically shown before first post in a new community
+- **Members / Moderators:** membership list, moderator list with elevated permissions
+- **Search:** search within a specific community
+
+### Profile
+- Header: avatar, cover photo, bio, camping experience level, favorite camping styles
+- Stats: followers, following
+- Tabs: Posts, Photos, Reviews, Saved Camps, Wishlist, Completed Trips
+
+### Trip Planner
+- Trip list, grouped by status (Planning, Upcoming/Confirmed, Completed)
+- Trip Detail: destination(s), travel dates, invited friends, checklist, itinerary, status
+
+### Reviews
+Structured, not free-text-only:
+- Rating (numeric/star)
+- Photos
+- Pros / Cons (structured lists)
+- Camping tips (free text)
+- Visit date
+
+## 3. Entity Map (plain language)
+
+- A **User** has a Profile, follows other Users, joins Communities, creates Posts and Reviews, and owns Trips.
+- A **Post** belongs to a User, optionally belongs to a Community, optionally references a Camp/Location, and has Photos, Comments, Likes, Shares, Bookmarks.
+- A **Community** has Members, Moderators, Rules, Pinned Posts, and a Feed of Posts.
+- A **Camp/Location** (mountain, beach, lake, forest, river, camping ground, etc.) has Photos, Reviews, Categories/Tags, a geographic position (for Map), and can appear in many Posts, Saved Camps, Wishlists, and Trips.
+- A **Review** belongs to a User and a Camp, and includes photos, rating, pros/cons, tips, visit date.
+- A **Trip** belongs to a User (organizer), references one or more Camps/Locations, has invited Users (friends), a checklist, dates, and a status.
+- **Saved Camps** and **Wishlist** are both User-to-Camp relationships, distinguished by intent (Saved = practical shortlist; Wishlist = aspirational/someday).
+- **Notifications** are generated by activity on entities the User owns or follows (likes, comments, follows, mentions, community activity, trip invites).
+- **Messages** are between two or more Users, independent of the above content entities.
+
+This entity map will directly inform the later Database Schema deliverable.

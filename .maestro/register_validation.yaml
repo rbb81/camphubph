@@ -1,0 +1,9 @@
+appId: com.camphubph.camper
+---
+- launchApp
+- tapOn: "Create your account"
+- tapOn: "Create account"
+- assertVisible: "Enter your full name."
+- assertVisible: "Enter your email address."
+- assertVisible: "Use at least 8 characters."
+- assertVisible: "You need to accept the terms to continue."
