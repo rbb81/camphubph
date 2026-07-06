@@ -60,10 +60,18 @@ Run `flutter devices` to list available targets.
 
 ## Testing
 
-### Unit / widget tests
+### 1. Unit / widget tests
+
+No device, emulator, or Supabase config needed — these run against the widget tree directly.
 
 ```bash
 flutter test
+```
+
+To run a single file:
+
+```bash
+flutter test test/register_screen_test.dart
 ```
 
 Covers (see [`test/register_screen_test.dart`](test/register_screen_test.dart)):
@@ -74,31 +82,48 @@ Covers (see [`test/register_screen_test.dart`](test/register_screen_test.dart)):
 
 [`test/widget_test.dart`](test/widget_test.dart) covers the landing screen → registration navigation.
 
-### Maestro end-to-end flows
+### 2. Maestro end-to-end flows
 
-Flows live in [`.maestro/`](.maestro/) and drive a real build on a device/emulator/simulator (`appId: com.camphubph.camper`).
+Flows live in [`.maestro/`](.maestro/) and drive a real, running build on a device/emulator/simulator (`appId: com.camphubph.camper`).
 
-1. Install [Maestro](https://maestro.mobile.dev) and have an Android emulator, iOS simulator, or physical device running with the app installed:
+**Install Maestro** (skip if already installed — check with `maestro --version`):
+
+```bash
+curl -Ls "https://get.maestro.mobile.dev" | bash
+```
+
+On Windows, run that inside WSL or Git Bash, then make sure `~/.maestro/bin` (or wherever it installed to) is on your `PATH` — reopen your terminal afterwards so `maestro` resolves.
+
+**Run a flow:**
+
+1. Start an Android emulator or iOS simulator (or plug in a physical device), then install/run the app on it:
 
    ```bash
+   flutter devices              # confirm the device shows up
    flutter run -d <device-id> --dart-define-from-file=.env
    ```
 
-2. In another terminal, run a flow:
+2. Leave that running, and in a second terminal run a flow against it:
 
    ```bash
    maestro test .maestro/register_validation.yaml
    ```
 
-   `register_validation.yaml` only checks client-side validation, no Supabase call is made.
+   Only checks client-side validation — no Supabase call is made, so this one works even without a configured `.env`.
 
    ```bash
    maestro test .maestro/register_happy_path.yaml
    ```
 
-   `register_happy_path.yaml` fills a valid form and submits — this one requires the running build to actually be configured with real Supabase credentials, since it asserts the "Check your email" success state.
+   Fills a valid form and submits for real — the device must be running a build with real Supabase credentials (step 1 above with `.env` filled in), since it asserts the "Check your email" success state.
 
-These flows haven't been run against a live emulator in this environment (none was available here) — verify locally before relying on them in CI.
+3. To run every flow in the folder at once:
+
+   ```bash
+   maestro test .maestro/
+   ```
+
+Maestro doesn't target Chrome/web — these flows need an Android or iOS target. These flows haven't been run against a live emulator in this environment (none was available here) — verify locally before relying on them in CI.
 
 ## Project structure
 
