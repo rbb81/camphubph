@@ -171,7 +171,7 @@ Legend: **Regions** (top to bottom or in layout order) → **Components** → **
 ## Design system application notes
 
 - **Vivid blue palette:** vivid blue (`AppColors.brand`) as the primary accent with a deep navy (`AppColors.brandStrong`) for the auth split-panel and dark-mode surfaces, gold (`AppColors.gold`) as a secondary accent for ratings/highlights, neutral cool-gray/blue-white for structure — consistent across all screens above. Replaces the earlier teal/amber nature palette (updated 2026-07-06 to match a Kidtopia-style reference).
-- **App icon:** cartoon-style A-frame tent (rounded outline, white canvas, gold door and flag) recolored to this blue/gold palette — concept confirmed, PNG assets not yet generated/wired via `flutter_launcher_icons`.
+- **App icon:** cartoon-style A-frame tent (rounded outline, white canvas, gold door and flag) in this blue/gold palette — implemented via `flutter_launcher_icons` from source SVGs in `assets/icon/`, generated for Android (adaptive icon), iOS, and web.
 - **Dark/Light mode:** every screen must be checked in both; photo-heavy screens (Home Feed, Discover, Camp Details, Photo Gallery) rely most on surface/border tokens rather than hardcoded colors.
 - **Empty states:** every list-based screen (Saved Camps, Wishlist, Trip Planner, Completed Trips, Reviews, Notifications, Messages, Community feeds) has a defined empty state — this is a first-class design requirement, not an afterthought, since a content-cold-start app will show these often in early usage.
 - **Bottom tab bar consistency:** Home, Discover, Map, Communities, Profile persist across all tab-level screens; all other screens above are reached via push/modal as defined in [navigation-structure.md](../navigation-structure.md).
