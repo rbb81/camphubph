@@ -1,0 +1,32 @@
+# Profile is only reachable after logging in. If the app was built WITHOUT
+# --dart-define-from-file, the dummy auth fallback accepts any credentials,
+# so the defaults below just work:
+#   maestro test .maestro/profile_smoke.yaml
+# If the app was built WITH real Supabase credentials, override with a
+# pre-existing, email-confirmed test account instead:
+#   maestro test -e MAESTRO_TEST_EMAIL=you@example.com -e MAESTRO_TEST_PASSWORD=yourpassword .maestro/profile_smoke.yaml
+#
+# Note: this flow only taps visible-text elements, same as home_smoke.yaml —
+# the header's icon-only Settings button isn't targeted here since Maestro
+# addresses elements by visible text/accessibility label, and that button
+# currently has neither (see profile_screen.dart's settingsButton IconButton).
+appId: com.camphubph.camper
+env:
+  MAESTRO_TEST_EMAIL: dummy@example.com
+  MAESTRO_TEST_PASSWORD: dummy-password
+---
+- launchApp
+- tapOn: "Log in"
+- tapOn: "name@example.com"
+- inputText: ${MAESTRO_TEST_EMAIL}
+- tapOn: "Your password"
+- inputText: ${MAESTRO_TEST_PASSWORD}
+- tapOn:
+    text: "Log in"
+    index: 1
+- assertVisible: "Camper"
+- tapOn: "Profile"
+- assertVisible: "Posts"
+- assertVisible: "Wishlist"
+- tapOn: "Wishlist"
+- assertVisible: "Batangas Ridge"

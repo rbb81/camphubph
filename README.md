@@ -2,7 +2,7 @@
 
 Camper is a camping-community app for the Philippines — discover camps, share trips, and connect with other campers. Built with Flutter so the same codebase targets web, Android, and iOS. Product/UX planning docs live in [`docs/`](docs/).
 
-Currently implemented: registration, login, and forgot-password screens (responsive, web + mobile) wired to Supabase Auth, plus a Home Feed screen (mixed feed, bottom tab bar, per [docs/ux/wireframes.md](docs/ux/wireframes.md)) shown after a successful login.
+Currently implemented: registration, login, and forgot-password screens (responsive, web + mobile) wired to Supabase Auth, a Home Feed screen (mixed feed, bottom tab bar, per [docs/ux/wireframes.md](docs/ux/wireframes.md)) shown after a successful login, and a Profile screen (own-profile view + a working Edit Profile form) reachable from Home's bottom tab bar.
 
 ## Prerequisites
 
@@ -70,9 +70,17 @@ The moment real credentials are provided, `AuthService` automatically switches b
 
 ## Home Feed
 
-[`lib/screens/home_screen.dart`](lib/screens/home_screen.dart) is the post-login destination — a mixed feed (friend posts, recommended camps, community posts, tips, suggested users) with a top bar (search/notifications, both stubbed) and a bottom tab bar (only **Home** is implemented; **Discover**, **Map**, **Communities**, **Profile** show a "coming soon" message, per [docs/ux/wireframes.md](docs/ux/wireframes.md)).
+[`lib/screens/home_screen.dart`](lib/screens/home_screen.dart) is the post-login destination — a mixed feed (friend posts, recommended camps, community posts, tips, suggested users) with a top bar (search/notifications, both stubbed) and a bottom tab bar. **Home** and **Profile** are implemented; **Discover**, **Map**, **Communities** still show a "coming soon" message, per [docs/ux/wireframes.md](docs/ux/wireframes.md).
 
 There's no `posts`/`camps` schema in Supabase yet, so the feed renders from static sample data in [`lib/data/sample_feed.dart`](lib/data/sample_feed.dart) (modeled by [`lib/models/home_feed_item.dart`](lib/models/home_feed_item.dart)) rather than a real query — swap that out once the database schema exists.
+
+## Profile
+
+[`lib/screens/profile_screen.dart`](lib/screens/profile_screen.dart) is reached by tapping **Profile** in Home's bottom tab bar (`/profile` route). It's the own-profile view only — cover photo + overlapping avatar, bio, experience-level badge, favorite camping-style tags, follower/following counts, and a sticky tab bar (Posts / Photos / Reviews / Saved Camps / Wishlist / Completed Trips). Tapping into an individual tab item still shows a "coming soon" message.
+
+There's no `profiles` schema in Supabase yet either, so this renders from static sample data in [`lib/data/sample_profile.dart`](lib/data/sample_profile.dart) (modeled by [`lib/models/profile.dart`](lib/models/profile.dart)).
+
+Tapping **Edit Profile** opens [`lib/screens/edit_profile_screen.dart`](lib/screens/edit_profile_screen.dart), a real working form — name/bio text fields, an experience-level selector, and favorite-style tag chips, plus avatar/cover photo pickers via [`image_picker`](https://pub.dev/packages/image_picker). There's no Supabase Storage configured yet, so picked images are only held in memory for the current session (not uploaded anywhere) and are lost on reload.
 
 ## Testing
 
@@ -95,6 +103,8 @@ Covers:
 - [`test/login_screen_test.dart`](test/login_screen_test.dart) — required-field errors, invalid email format, valid submit navigating to `/home` via the dummy auth fallback, navigation to `/forgot-password` and `/register`
 - [`test/forgot_password_screen_test.dart`](test/forgot_password_screen_test.dart) — empty/invalid email validation, valid submit succeeding via the dummy auth fallback, navigation back to `/login`
 - [`test/home_screen_test.dart`](test/home_screen_test.dart) — app bar/bottom tab bar render, mixed feed content renders, "coming soon" messages for unbuilt tabs/search/create-post
+- [`test/profile_screen_test.dart`](test/profile_screen_test.dart) — identity block and tab labels render, settings/follower-stat "coming soon" messages, switching tabs shows matching sample content, Edit Profile navigation
+- [`test/edit_profile_screen_test.dart`](test/edit_profile_screen_test.dart) — form pre-populates from the passed profile, name validation, style-chip toggling, avatar/cover picker buttons don't crash, Save pops with the edited profile
 - [`test/widget_test.dart`](test/widget_test.dart) — landing screen → registration navigation
 
 ### 2. Maestro end-to-end flows
@@ -145,6 +155,13 @@ On Windows, run that inside WSL or Git Bash, then make sure `~/.maestro/bin` (or
 
    Home is only reachable after logging in. The flow's default credentials (`dummy@example.com` / `dummy-password`) work as-is against a build without `--dart-define-from-file`, since the dummy auth fallback accepts any credentials. Against a build with real Supabase credentials, override with a pre-existing, **email-confirmed** test account instead: `maestro test -e MAESTRO_TEST_EMAIL=you@example.com -e MAESTRO_TEST_PASSWORD=yourpassword .maestro/home_smoke.yaml`.
 
+   ```bash
+   maestro test .maestro/profile_smoke.yaml
+   maestro test .maestro/edit_profile_flow.yaml
+   ```
+
+   Same login requirement and credential overrides as `home_smoke.yaml` above. `profile_smoke.yaml` logs in, taps into Profile from the bottom nav, and checks a tab switch; `edit_profile_flow.yaml` additionally opens Edit Profile, changes the name field, saves, and confirms the change is reflected back on Profile.
+
 3. To run every flow in the folder at once:
 
    ```bash
@@ -187,6 +204,13 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
 
    Pumps `HomeScreen` directly rather than going through a real login (same reasoning as the Maestro `home_smoke.yaml` flow — reaching it via a real sign-in adds an extra step this test doesn't need), and checks the feed renders plus the search/create-post/tab-bar "coming soon" messages. Also run and passed here against a real Chrome window.
 
+   ```bash
+   flutter drive --driver=test_driver/integration_test.dart --target=integration_test/profile_test.dart -d chrome
+   flutter drive --driver=test_driver/integration_test.dart --target=integration_test/edit_profile_test.dart -d chrome
+   ```
+
+   Same "pump the screen directly" approach as `home_test.dart`. `profile_test.dart` checks the identity block/tabs render, the settings "coming soon" message, tab switching, and Edit Profile navigation; `edit_profile_test.dart` checks the form pre-populates and name validation. Both run and passed here against a real Chrome window (one run of `profile_test.dart` hit a transient `AppConnectionException` while waiting for the debug service to connect — a plain retry succeeded, so treat that as flaky rather than a real failure if it recurs).
+
 See [`integration_test/`](integration_test/) and the driver shim at [`test_driver/integration_test.dart`](test_driver/integration_test.dart).
 
 ## Deployment
@@ -222,9 +246,11 @@ lib/config/env.dart         reads SUPABASE_URL / SUPABASE_ANON_KEY
 lib/services/auth_service.dart  Supabase Auth, with a dummy fallback when unconfigured
 lib/theme/app_theme.dart    light/dark theme (nature-inspired palette)
 lib/widgets/auth_layout.dart shared layout for register/login/forgot-password
-lib/screens/                landing, registration, login, forgot-password, home screens
+lib/screens/                landing, registration, login, forgot-password, home, profile, edit-profile screens
 lib/models/home_feed_item.dart Home Feed content types
+lib/models/profile.dart     Profile content types (UserProfile, experience level, tab items)
 lib/data/sample_feed.dart   placeholder Home Feed content (no posts/camps schema yet)
+lib/data/sample_profile.dart placeholder Profile content (no profiles schema yet)
 test/                       unit/widget tests
 integration_test/           Flutter driver end-to-end tests (web)
 test_driver/                driver shim for integration_test on web
@@ -238,6 +264,7 @@ docs/                       product & UX planning docs
 
 - [Flutter](https://flutter.dev) (web, Android, iOS from one codebase)
 - [supabase_flutter](https://pub.dev/packages/supabase_flutter) (Auth)
+- [image_picker](https://pub.dev/packages/image_picker) (avatar/cover photo selection on the Edit Profile screen)
 - [Maestro](https://maestro.mobile.dev) (end-to-end UI testing, Android/iOS)
 - [integration_test](https://pub.dev/packages/integration_test) + chromedriver (end-to-end testing, web)
 - [Netlify](https://www.netlify.com) (web deployment, staging + production sites) via [GitHub Actions](.github/workflows/deploy-web.yml) (manual trigger only)

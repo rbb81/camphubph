@@ -1,0 +1,30 @@
+# Edit Profile is reached from Profile, which itself requires login. See
+# profile_smoke.yaml for the login-credential override instructions — the
+# same dummy-auth defaults apply here.
+#
+# Taps the pre-filled name field by its visible text (matching the existing
+# convention of text-based Maestro taps in this repo) rather than a widget
+# key/id, since Flutter widget Keys aren't directly Maestro-addressable
+# without additional Semantics wiring.
+appId: com.camphubph.camper
+env:
+  MAESTRO_TEST_EMAIL: dummy@example.com
+  MAESTRO_TEST_PASSWORD: dummy-password
+---
+- launchApp
+- tapOn: "Log in"
+- tapOn: "name@example.com"
+- inputText: ${MAESTRO_TEST_EMAIL}
+- tapOn: "Your password"
+- inputText: ${MAESTRO_TEST_PASSWORD}
+- tapOn:
+    text: "Log in"
+    index: 1
+- tapOn: "Profile"
+- tapOn: "Edit Profile"
+- assertVisible: "Edit Profile"
+- tapOn: "Ana Dela Cruz"
+- eraseText
+- inputText: "Maestro Tester"
+- tapOn: "Save changes"
+- assertVisible: "Maestro Tester"

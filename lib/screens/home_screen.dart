@@ -60,6 +60,10 @@ class _HomeScreenState extends State<HomeScreen> {
         type: BottomNavigationBarType.fixed,
         onTap: (index) {
           const labels = ['Home', 'Discover', 'Map', 'Communities', 'Profile'];
+          if (index == 4) {
+            Navigator.of(context).pushNamed('/profile');
+            return;
+          }
           if (index != 0) _comingSoon(labels[index]);
         },
         items: const [
