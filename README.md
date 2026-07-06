@@ -156,6 +156,31 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
 
 See [`integration_test/register_test.dart`](integration_test/register_test.dart) and the driver shim at [`test_driver/integration_test.dart`](test_driver/integration_test.dart).
 
+## Deployment
+
+Web builds deploy to Netlify, to a separate `staging` or `production` site, via a **manually-triggered** GitHub Actions workflow — [`.github/workflows/deploy-web.yml`](.github/workflows/deploy-web.yml). Nothing deploys automatically on push.
+
+### One-time setup
+
+1. **Netlify sites:** create two separate Netlify sites — one for staging, one for production (Netlify dashboard → Add new site, or `netlify sites:create` via the CLI). They can start empty; the GitHub Actions workflow pushes builds to them, there's no need to connect them to the repo via Netlify's own Git integration. Note each site's **Site ID** (Site configuration → General → Site details).
+
+2. **Auth token:** generate a Netlify personal access token (User settings → Applications → New access token). The same token can be used for both sites as long as they're on the same Netlify account/team.
+
+3. **GitHub Environments:** in this repo's Settings → Environments, create two environments named exactly `staging` and `production`. Add these secrets to **each** (values differ per environment — that's the point of using separate Supabase projects and separate Netlify sites):
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY`
+   - `NETLIFY_AUTH_TOKEN` — the personal access token (can be the same value in both environments)
+   - `NETLIFY_SITE_ID` — that environment's Netlify site ID (different per environment)
+
+   Optionally add a required reviewer to the `production` environment for an extra manual approval gate on top of the manual trigger.
+
+### Deploying
+
+1. Go to the repo's **Actions** tab → **Deploy web** workflow → **Run workflow**.
+2. Choose `staging` or `production` from the dropdown, then run it.
+
+The job installs Flutter, runs `flutter analyze` and `flutter test` first (deploy is blocked if either fails), builds the web release with that environment's Supabase secrets baked in via `--dart-define`, then runs `netlify deploy --dir=build/web --prod` against that environment's site.
+
 ## Project structure
 
 ```
@@ -167,6 +192,8 @@ test/                       unit/widget tests
 integration_test/           Flutter driver end-to-end tests (web)
 test_driver/                driver shim for integration_test on web
 .maestro/                   Maestro end-to-end flows (Android/iOS)
+.github/workflows/          CI: manual staging/production web deploy
+netlify.toml                Netlify build/publish config
 docs/                       product & UX planning docs
 ```
 
@@ -176,3 +203,4 @@ docs/                       product & UX planning docs
 - [supabase_flutter](https://pub.dev/packages/supabase_flutter) (Auth)
 - [Maestro](https://maestro.mobile.dev) (end-to-end UI testing, Android/iOS)
 - [integration_test](https://pub.dev/packages/integration_test) + chromedriver (end-to-end testing, web)
+- [Netlify](https://www.netlify.com) (web deployment, staging + production sites) via [GitHub Actions](.github/workflows/deploy-web.yml) (manual trigger only)

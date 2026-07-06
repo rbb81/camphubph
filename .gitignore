@@ -46,3 +46,6 @@ app.*.map.json
 
 # Local env (Supabase keys), see .env.example
 .env
+
+# Netlify CLI
+.netlify/
