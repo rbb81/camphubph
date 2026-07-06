@@ -125,6 +125,37 @@ On Windows, run that inside WSL or Git Bash, then make sure `~/.maestro/bin` (or
 
 Maestro doesn't target Chrome/web — these flows need an Android or iOS target. These flows haven't been run against a live emulator in this environment (none was available here) — verify locally before relying on them in CI.
 
+### 3. Web end-to-end tests (Flutter driver + chromedriver)
+
+Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM Maestro's web support can inspect. For a web equivalent of the Maestro flows above, use Flutter's own `integration_test` package driven through `flutter drive`, which controls a real Chrome window via chromedriver. This has been verified working end-to-end in this repo.
+
+1. Install a `chromedriver` build that matches your local Chrome version:
+
+   ```bash
+   google-chrome --version   # or check chrome://version on Windows
+   ```
+
+   Download the matching build from the [Chrome for Testing dashboard](https://googlechromelabs.github.io/chrome-for-testing/) (pick the version closest to yours — chromedriver only needs to match the Chrome major version) and unzip `chromedriver.exe`/`chromedriver` somewhere on your `PATH`.
+
+2. Start chromedriver on port 4444 (leave it running in its own terminal):
+
+   ```bash
+   chromedriver --port=4444
+   ```
+
+3. In another terminal, run the flow. Run it **without** `--dart-define-from-file` so Supabase is intentionally left unconfigured — the test asserts the graceful "Supabase isn't configured" fallback, the same case the unit tests cover, but through a real browser instead of the widget-test harness:
+
+   ```bash
+   flutter drive \
+     --driver=test_driver/integration_test.dart \
+     --target=integration_test/register_test.dart \
+     -d chrome
+   ```
+
+   This opens an actual Chrome window, taps through from the landing page to `/register`, submits an empty form and checks all four validation messages, then fills a fully valid form and confirms the config-error fallback shows up instead of a crash.
+
+See [`integration_test/register_test.dart`](integration_test/register_test.dart) and the driver shim at [`test_driver/integration_test.dart`](test_driver/integration_test.dart).
+
 ## Project structure
 
 ```
@@ -133,7 +164,9 @@ lib/config/env.dart         reads SUPABASE_URL / SUPABASE_ANON_KEY
 lib/theme/app_theme.dart    light/dark theme (nature-inspired palette)
 lib/screens/                landing + registration screens
 test/                       unit/widget tests
-.maestro/                   Maestro end-to-end flows
+integration_test/           Flutter driver end-to-end tests (web)
+test_driver/                driver shim for integration_test on web
+.maestro/                   Maestro end-to-end flows (Android/iOS)
 docs/                       product & UX planning docs
 ```
 
@@ -141,4 +174,5 @@ docs/                       product & UX planning docs
 
 - [Flutter](https://flutter.dev) (web, Android, iOS from one codebase)
 - [supabase_flutter](https://pub.dev/packages/supabase_flutter) (Auth)
-- [Maestro](https://maestro.mobile.dev) (end-to-end UI testing)
+- [Maestro](https://maestro.mobile.dev) (end-to-end UI testing, Android/iOS)
+- [integration_test](https://pub.dev/packages/integration_test) + chromedriver (end-to-end testing, web)
