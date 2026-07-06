@@ -39,7 +39,7 @@ Currently implemented: registration, login, and forgot-password screens (respons
 
 5. Once it opens, click **Create your account** to reach `/#/register`, or **Log in** to reach `/#/login` (which links to `/#/forgot-password`).
 
-Values are read via `String.fromEnvironment` in [`lib/config/env.dart`](lib/config/env.dart) — if you forget `--dart-define-from-file`, the app still runs but the registration form will show a "Supabase isn't configured" error instead of silently failing.
+Values are read via `String.fromEnvironment` in [`lib/config/env.dart`](lib/config/env.dart) — if you skip `--dart-define-from-file` (or don't have a Supabase project yet), auth screens fall back to dummy data instead of calling Supabase, so you can still click through registration/login/forgot-password. See **Dummy auth mode** below.
 
 ## Run on Android / iOS
 
@@ -51,12 +51,21 @@ flutter run -d <device-id> --dart-define-from-file=.env
 
 Run `flutter devices` to list available targets.
 
+## Dummy auth mode
+
+[`lib/services/auth_service.dart`](lib/services/auth_service.dart) wraps every Supabase Auth call. When `Env.isConfigured` is `false` (no `SUPABASE_URL`/`SUPABASE_ANON_KEY` passed via `--dart-define-from-file`), it skips Supabase entirely and returns success after a short fake delay instead — so registration, login, and forgot-password all just work without a real backend:
+
+- Register / forgot-password show the same "Check your email" success panel they would with real Supabase (no email is actually sent).
+- Login succeeds with **any** email/password that pass client-side validation, and navigates to `/home`.
+
+The moment real credentials are provided, `AuthService` automatically switches back to calling the real Supabase SDK — no code changes needed, no flag to flip.
+
 ## Debugging auth
 
-- Sign-ups call `Supabase.instance.client.auth.signUp` (see [`lib/screens/register_screen.dart`](lib/screens/register_screen.dart)); login calls `auth.signInWithPassword` ([`lib/screens/login_screen.dart`](lib/screens/login_screen.dart)); forgot-password calls `auth.resetPasswordForEmail` ([`lib/screens/forgot_password_screen.dart`](lib/screens/forgot_password_screen.dart)). All three share the responsive layout and error/loading UI in [`lib/widgets/auth_layout.dart`](lib/widgets/auth_layout.dart).
-- Supabase's default email-confirmation flow applies: after signing up, check **Authentication → Users** in the Supabase dashboard to see the new (unconfirmed) user, and **Authentication → Logs** if a confirmation or password-reset email doesn't show up.
-- To skip email confirmation while developing, toggle it off under **Authentication → Providers → Email → Confirm email** in the Supabase dashboard — otherwise login will fail for an unconfirmed account with an "Email not confirmed" error.
-- Supabase is initialized once in [`lib/main.dart`](lib/main.dart); it's skipped entirely (not crash-on-missing-config) if `.env` values aren't provided, so `flutter run` without `--dart-define-from-file` still boots the UI for layout/debugging (all three auth screens show a "Supabase isn't configured" error on submit instead).
+- Sign-ups call `AuthService.instance.signUp` (see [`lib/screens/register_screen.dart`](lib/screens/register_screen.dart)); login calls `.signIn` ([`lib/screens/login_screen.dart`](lib/screens/login_screen.dart)); forgot-password calls `.resetPassword` ([`lib/screens/forgot_password_screen.dart`](lib/screens/forgot_password_screen.dart)) — all routed through [`lib/services/auth_service.dart`](lib/services/auth_service.dart). All three screens share the responsive layout and error/loading UI in [`lib/widgets/auth_layout.dart`](lib/widgets/auth_layout.dart).
+- When Supabase *is* configured: its default email-confirmation flow applies — after signing up, check **Authentication → Users** in the Supabase dashboard to see the new (unconfirmed) user, and **Authentication → Logs** if a confirmation or password-reset email doesn't show up.
+- To skip email confirmation while developing against real Supabase, toggle it off under **Authentication → Providers → Email → Confirm email** in the Supabase dashboard — otherwise login will fail for an unconfirmed account with an "Email not confirmed" error.
+- Supabase itself is initialized once in [`lib/main.dart`](lib/main.dart), only when configured — so `flutter run` without `--dart-define-from-file` never touches the Supabase SDK at all, it just uses the dummy fallback above.
 - After a successful login, the app navigates to `/home` and clears the auth screens from the back stack.
 
 ## Home Feed
@@ -82,9 +91,9 @@ flutter test test/register_screen_test.dart
 ```
 
 Covers:
-- [`test/register_screen_test.dart`](test/register_screen_test.dart) — required-field errors, invalid email format, mismatched password/confirm password, and a fully valid submit when Supabase isn't configured (asserts the friendly config error instead of a crash)
-- [`test/login_screen_test.dart`](test/login_screen_test.dart) — required-field errors, invalid email format, valid-but-unconfigured submit, navigation to `/forgot-password` and `/register`
-- [`test/forgot_password_screen_test.dart`](test/forgot_password_screen_test.dart) — empty/invalid email validation, valid-but-unconfigured submit, navigation back to `/login`
+- [`test/register_screen_test.dart`](test/register_screen_test.dart) — required-field errors, invalid email format, mismatched password/confirm password, and a fully valid submit succeeding via the dummy auth fallback
+- [`test/login_screen_test.dart`](test/login_screen_test.dart) — required-field errors, invalid email format, valid submit navigating to `/home` via the dummy auth fallback, navigation to `/forgot-password` and `/register`
+- [`test/forgot_password_screen_test.dart`](test/forgot_password_screen_test.dart) — empty/invalid email validation, valid submit succeeding via the dummy auth fallback, navigation back to `/login`
 - [`test/home_screen_test.dart`](test/home_screen_test.dart) — app bar/bottom tab bar render, mixed feed content renders, "coming soon" messages for unbuilt tabs/search/create-post
 - [`test/widget_test.dart`](test/widget_test.dart) — landing screen → registration navigation
 
@@ -121,20 +130,20 @@ On Windows, run that inside WSL or Git Bash, then make sure `~/.maestro/bin` (or
    maestro test .maestro/register_happy_path.yaml
    ```
 
-   Fills a valid form and submits for real — the device must be running a build with real Supabase credentials (step 1 above with `.env` filled in), since it asserts the "Check your email" success state.
+   Fills a valid form and submits. Works either way: without `--dart-define-from-file` it exercises the dummy auth fallback (always succeeds); with real Supabase credentials it exercises an actual `signUp` call. Both land on the same "Check your email" state.
 
    ```bash
    maestro test .maestro/login_validation.yaml
    maestro test .maestro/forgot_password_validation.yaml
    ```
 
-   Both are validation-only (no Supabase call), so they work without a configured `.env`. There's no login/forgot-password "happy path" flow, since that would need a pre-existing confirmed test account seeded in Supabase rather than just a valid-looking form.
+   Both are validation-only (no auth call at all), so they work regardless of configuration.
 
    ```bash
-   maestro test -e MAESTRO_TEST_EMAIL=you@example.com -e MAESTRO_TEST_PASSWORD=yourpassword .maestro/home_smoke.yaml
+   maestro test .maestro/home_smoke.yaml
    ```
 
-   Home is only reachable after a real login, so this one needs a pre-existing, **email-confirmed** Supabase test account — pass its credentials via `-e` flags (see the comment at the top of [`.maestro/home_smoke.yaml`](.maestro/home_smoke.yaml)). It logs in for real, then asserts the feed and tab bar render and that tapping an unimplemented tab shows its "coming soon" message.
+   Home is only reachable after logging in. The flow's default credentials (`dummy@example.com` / `dummy-password`) work as-is against a build without `--dart-define-from-file`, since the dummy auth fallback accepts any credentials. Against a build with real Supabase credentials, override with a pre-existing, **email-confirmed** test account instead: `maestro test -e MAESTRO_TEST_EMAIL=you@example.com -e MAESTRO_TEST_PASSWORD=yourpassword .maestro/home_smoke.yaml`.
 
 3. To run every flow in the folder at once:
 
@@ -162,7 +171,7 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    chromedriver --port=4444
    ```
 
-3. In another terminal, run a flow. Run these **without** `--dart-define-from-file` so Supabase is intentionally left unconfigured — each test asserts the graceful "Supabase isn't configured" fallback, the same case the unit tests cover, but through a real browser instead of the widget-test harness:
+3. In another terminal, run a flow. Run these **without** `--dart-define-from-file` so Supabase is intentionally left unconfigured — each test asserts the dummy auth fallback succeeds, the same case the unit tests cover, but through a real browser instead of the widget-test harness:
 
    ```bash
    flutter drive --driver=test_driver/integration_test.dart --target=integration_test/register_test.dart -d chrome
@@ -170,13 +179,13 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    flutter drive --driver=test_driver/integration_test.dart --target=integration_test/forgot_password_test.dart -d chrome
    ```
 
-   Each opens an actual Chrome window, navigates from the landing page to the relevant screen, submits an empty form and checks the validation messages, then fills a fully valid form and confirms the config-error fallback shows up instead of a crash. All three were run and passed in this environment against a real Chrome window (chromedriver 149.x).
+   Each opens an actual Chrome window, navigates from the landing page to the relevant screen, submits an empty form and checks the validation messages, then fills a fully valid form and confirms it succeeds via the dummy auth fallback instead of crashing. All three were run and passed in this environment against a real Chrome window (chromedriver 149.x).
 
    ```bash
    flutter drive --driver=test_driver/integration_test.dart --target=integration_test/home_test.dart -d chrome
    ```
 
-   Pumps `HomeScreen` directly rather than going through a real login (same reasoning as the Maestro `home_smoke.yaml` flow — reaching it for real needs a seeded account), and checks the feed renders plus the search/create-post/tab-bar "coming soon" messages. Also run and passed here against a real Chrome window.
+   Pumps `HomeScreen` directly rather than going through a real login (same reasoning as the Maestro `home_smoke.yaml` flow — reaching it via a real sign-in adds an extra step this test doesn't need), and checks the feed renders plus the search/create-post/tab-bar "coming soon" messages. Also run and passed here against a real Chrome window.
 
 See [`integration_test/`](integration_test/) and the driver shim at [`test_driver/integration_test.dart`](test_driver/integration_test.dart).
 
@@ -210,6 +219,7 @@ The job installs Flutter, runs `flutter analyze` and `flutter test` first (deplo
 ```
 lib/main.dart               app entry point, theme + routes
 lib/config/env.dart         reads SUPABASE_URL / SUPABASE_ANON_KEY
+lib/services/auth_service.dart  Supabase Auth, with a dummy fallback when unconfigured
 lib/theme/app_theme.dart    light/dark theme (nature-inspired palette)
 lib/widgets/auth_layout.dart shared layout for register/login/forgot-password
 lib/screens/                landing, registration, login, forgot-password, home screens

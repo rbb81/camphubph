@@ -28,8 +28,9 @@ void main() {
     });
 
     testWidgets(
-        'submitting valid credentials without Supabase configured '
-        '(run this file without --dart-define-from-file)', (tester) async {
+        'submitting valid credentials navigates to home via the dummy auth '
+        'fallback (run this file without --dart-define-from-file)',
+        (tester) async {
       await app.main();
       await tester.pumpAndSettle();
 
@@ -47,10 +48,7 @@ void main() {
 
       await tapLogInButton(tester);
 
-      expect(
-        find.textContaining("Supabase isn't configured"),
-        findsOneWidget,
-      );
+      expect(find.text('Recommended near you'), findsWidgets);
     });
   });
 }

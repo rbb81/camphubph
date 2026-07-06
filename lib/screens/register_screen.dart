@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../config/env.dart';
+import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/auth_layout.dart';
 
@@ -38,25 +38,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final formValid = _formKey.currentState?.validate() ?? false;
     if (!formValid || !_acceptedTerms) return;
 
-    if (!Env.isConfigured) {
-      setState(() {
-        _formError =
-            'Supabase isn\'t configured. Run with --dart-define-from-file=.env '
-            '(see README.md).';
-      });
-      return;
-    }
-
     setState(() {
       _submitting = true;
       _formError = null;
     });
 
     try {
-      await Supabase.instance.client.auth.signUp(
+      await AuthService.instance.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
-        data: {'full_name': _fullNameController.text.trim()},
+        fullName: _fullNameController.text.trim(),
       );
       setState(() => _submittedEmail = _emailController.text.trim());
     } on AuthException catch (e) {

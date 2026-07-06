@@ -51,7 +51,8 @@ void main() {
     });
 
     testWidgets(
-      'submitting a valid email without Supabase configured shows a config error',
+      'submitting a valid email succeeds via the dummy auth fallback '
+      'when Supabase is not configured',
       (WidgetTester tester) async {
         await pumpForgotPasswordScreen(tester);
 
@@ -62,10 +63,7 @@ void main() {
 
         await tapSendResetLink(tester);
 
-        expect(
-          find.textContaining("Supabase isn't configured"),
-          findsOneWidget,
-        );
+        expect(find.text('Check your email'), findsOneWidget);
       },
     );
 

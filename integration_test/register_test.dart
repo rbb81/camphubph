@@ -33,7 +33,7 @@ void main() {
     });
 
     testWidgets(
-        'submits a fully valid form without Supabase configured '
+        'submits a fully valid form via the dummy auth fallback '
         '(run this file without --dart-define-from-file)', (tester) async {
       await app.main();
       await tester.pumpAndSettle();
@@ -62,13 +62,10 @@ void main() {
 
       await tapCreateAccount(tester);
 
-      // Confirms the app fails gracefully (no crash) when Supabase isn't
+      // Confirms the dummy auth fallback succeeds when Supabase isn't
       // configured, mirroring the equivalent widget test in
       // test/register_screen_test.dart but driven through a real browser.
-      expect(
-        find.textContaining("Supabase isn't configured"),
-        findsOneWidget,
-      );
+      expect(find.text('Check your email'), findsOneWidget);
     });
   });
 }

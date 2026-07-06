@@ -1,5 +1,7 @@
-# Requires the app to be built/installed with real Supabase credentials
-# (--dart-define-from-file=.env), since it exercises an actual signUp call.
+# Works either way: if the app was built without --dart-define-from-file,
+# this exercises the dummy auth fallback (always succeeds); if built with
+# real Supabase credentials, it exercises an actual signUp call. Either way
+# the app lands on the same "Check your email" state.
 appId: com.camphubph.camper
 ---
 - launchApp

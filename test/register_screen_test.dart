@@ -93,7 +93,8 @@ void main() {
     });
 
     testWidgets(
-      'submitting a fully valid form without Supabase configured shows a config error',
+      'submitting a fully valid form succeeds via the dummy auth fallback '
+      'when Supabase is not configured',
       (WidgetTester tester) async {
         await pumpRegisterScreen(tester);
 
@@ -118,7 +119,7 @@ void main() {
 
         await tapCreateAccount(tester);
 
-        expect(find.textContaining("Supabase isn't configured"), findsOneWidget);
+        expect(find.text('Check your email'), findsOneWidget);
       },
     );
   });

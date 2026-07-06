@@ -26,7 +26,7 @@ void main() {
     });
 
     testWidgets(
-        'submitting a valid email without Supabase configured '
+        'submitting a valid email succeeds via the dummy auth fallback '
         '(run this file without --dart-define-from-file)', (tester) async {
       await app.main();
       await tester.pumpAndSettle();
@@ -46,10 +46,7 @@ void main() {
       await tester.tap(find.text('Send reset link'));
       await tester.pumpAndSettle();
 
-      expect(
-        find.textContaining("Supabase isn't configured"),
-        findsOneWidget,
-      );
+      expect(find.text('Check your email'), findsOneWidget);
     });
   });
 }

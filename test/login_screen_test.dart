@@ -16,6 +16,7 @@ Future<void> pumpLoginScreen(WidgetTester tester) async {
         '/register': (context) => const Scaffold(body: Text('Register page')),
         '/forgot-password': (context) =>
             const Scaffold(body: Text('Forgot password page')),
+        '/home': (context) => const Scaffold(body: Text('Home page')),
       },
     ),
   );
@@ -60,7 +61,8 @@ void main() {
     });
 
     testWidgets(
-      'submitting valid credentials without Supabase configured shows a config error',
+      'submitting valid credentials navigates to home via the dummy auth '
+      'fallback when Supabase is not configured',
       (WidgetTester tester) async {
         await pumpLoginScreen(tester);
 
@@ -75,10 +77,7 @@ void main() {
 
         await tapLogIn(tester);
 
-        expect(
-          find.textContaining("Supabase isn't configured"),
-          findsOneWidget,
-        );
+        expect(find.text('Home page'), findsOneWidget);
       },
     );
 
