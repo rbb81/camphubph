@@ -80,6 +80,8 @@ There's no `posts`/`camps` schema in Supabase yet, so the feed renders from stat
 
 There's no `profiles` schema in Supabase yet either, so this renders from static sample data in [`lib/data/sample_profile.dart`](lib/data/sample_profile.dart) (modeled by [`lib/models/profile.dart`](lib/models/profile.dart)).
 
+The cover photo intentionally bleeds edge-to-edge under the status bar (no `AppBar`, `SafeArea(top: false)` on the body) — an `AnnotatedRegion<SystemUiOverlayStyle>` makes the status bar itself transparent with light icons so it blends with the cover instead of showing as an opaque bar on top of it. The back/settings icon buttons are still individually wrapped in their own `SafeArea` so they land below a notch/status bar rather than under it.
+
 Tapping **Edit Profile** opens [`lib/screens/edit_profile_screen.dart`](lib/screens/edit_profile_screen.dart), a real working form — name/bio text fields, an experience-level selector, and favorite-style tag chips, plus avatar/cover photo pickers via [`image_picker`](https://pub.dev/packages/image_picker). There's no Supabase Storage configured yet, so picked images are only held in memory for the current session (not uploaded anywhere) and are lost on reload.
 
 ## Testing
