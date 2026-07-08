@@ -42,6 +42,7 @@ Legend: **Regions** (top to bottom or in layout order) → **Components** → **
 - **Components:** post card (avatar, name, timestamp, location tag, image/carousel, like/comment/share/bookmark row), recommended-camp card (image, name, distance, rating, save button), community-post card (community badge, snippet), trending-destination card, tip card, event card, news card, suggested-user card (avatar, name, follow button).
 - **States:** loading (skeleton cards), empty (new user — mostly recommendations, no friend posts yet), refreshing (pull-to-refresh), error (retry banner).
 - **Primary actions:** like/comment/share/bookmark/report a post, tap through to Post Details/Camp Details/Profile/Community Feed, follow a suggested user, create a post.
+- **Implemented (Phase 3, 2026-07-08):** friend-post like toggle and tap-through to Post Details are live; create-post FAB opens a real Create Post screen. Share/bookmark/report and tap-through for recommended-camp/community/suggested-user cards remain stubbed.
 
 ## Discover
 *(Visual mockup rendered above — see "camper_home_discover_mockup")*
@@ -88,12 +89,14 @@ Legend: **Regions** (top to bottom or in layout order) → **Components** → **
 - **Components:** full post content (all photos, full caption), author row (with follow button if not following), like/comment/share/bookmark/report row, threaded/flat comment list (author, text, like, reply), comment input.
 - **States:** default, loading comments, empty comments ("be the first to comment"), deleted/removed post (moderation state).
 - **Primary actions:** like/comment/share/bookmark/report, follow author, reply to a comment, tap author/camp/community mentions to navigate.
+- **Implemented (Phase 3, 2026-07-08):** `lib/screens/post_details_screen.dart` — full post, like toggle, flat (non-threaded) comment list, comment composer. Not yet built: follow button, share/bookmark/report, moderation state, @mention navigation.
 
 ## Create Post
 - **Regions:** header (cancel, "Post" submit button), photo/media picker, caption input, tag pickers (location, community), post-type shortcuts.
 - **Components:** multi-image picker/reorder, caption textarea with @mention and #hashtag support, "Tag a camp" search field, "Post to a community" selector (optional, defaults to profile/followers only), post-type quick-select (trip report, question, gear tip, general).
 - **States:** empty/draft, media-selected, uploading (progress), error (retry), success (returns to originating feed).
 - **Primary actions:** attach photos, tag camp, tag community, publish, discard draft.
+- **Implemented (Phase 3, 2026-07-08):** `lib/screens/create_post_screen.dart` — required caption, optional location, single photo picker (via `image_picker`), publishes a `FriendPostItem` to the top of Home Feed. Not yet built: multi-image/reorder, @mention/#hashtag, camp/community tagging, post-type quick-select, upload progress (no Storage backend yet — photo stays in-memory).
 
 ## Notifications
 - **Regions:** top bar (title, mark-all-read), chronological list, grouped by recency (Today/This week/Earlier).

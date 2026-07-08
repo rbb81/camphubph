@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import '../data/sample_feed.dart';
+import '../data/sample_profile.dart';
 import '../models/home_feed_item.dart';
 import '../theme/app_theme.dart';
+import 'create_post_screen.dart';
+import 'post_details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,10 +14,44 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late final List<HomeFeedItem> _feed = List.of(sampleHomeFeed);
+
   void _comingSoon(String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('$feature is coming soon.')),
     );
+  }
+
+  Future<void> _createPost() async {
+    final post = await Navigator.of(context).push<FriendPostItem>(
+      MaterialPageRoute(
+        builder: (_) => CreatePostScreen(author: sampleProfile),
+      ),
+    );
+    if (post != null) {
+      setState(() => _feed.insert(0, post));
+    }
+  }
+
+  void _toggleLike(int index, FriendPostItem item) {
+    setState(() {
+      _feed[index] = item.copyWith(
+        isLiked: !item.isLiked,
+        likeCount: item.isLiked ? item.likeCount - 1 : item.likeCount + 1,
+      );
+    });
+  }
+
+  Future<void> _openPost(int index, FriendPostItem item) async {
+    final updated = await Navigator.of(context).push<FriendPostItem>(
+      MaterialPageRoute(
+        builder: (_) =>
+            PostDetailsScreen(post: item, currentUser: sampleProfile),
+      ),
+    );
+    if (updated != null) {
+      setState(() => _feed[index] = updated);
+    }
   }
 
   @override
@@ -42,17 +79,17 @@ class _HomeScreenState extends State<HomeScreen> {
             constraints: const BoxConstraints(maxWidth: 640),
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
-              itemCount: sampleHomeFeed.length,
+              itemCount: _feed.length,
               separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (context, index) =>
-                  _buildFeedCard(context, sampleHomeFeed[index]),
+                  _buildFeedCard(context, index, _feed[index]),
             ),
           ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
         key: const Key('createPostButton'),
-        onPressed: () => _comingSoon('Create post'),
+        onPressed: _createPost,
         child: const Icon(Icons.add),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -77,9 +114,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildFeedCard(BuildContext context, HomeFeedItem item) {
+  Widget _buildFeedCard(BuildContext context, int index, HomeFeedItem item) {
     return switch (item) {
-      FriendPostItem() => _FriendPostCard(item: item),
+      FriendPostItem() => _FriendPostCard(
+        item: item,
+        onLike: () => _toggleLike(index, item),
+        onOpenPost: () => _openPost(index, item),
+      ),
       RecommendedCampItem() => _RecommendedCampCard(item: item),
       CommunityPostItem() => _CommunityPostCard(item: item),
       TipItem() => _TipCard(item: item),
@@ -137,58 +178,98 @@ class _Avatar extends StatelessWidget {
 }
 
 class _FriendPostCard extends StatelessWidget {
-  const _FriendPostCard({required this.item});
+  const _FriendPostCard({
+    required this.item,
+    required this.onLike,
+    required this.onOpenPost,
+  });
 
   final FriendPostItem item;
+  final VoidCallback onLike;
+  final VoidCallback onOpenPost;
 
   @override
   Widget build(BuildContext context) {
-    return _Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _Avatar(item.authorInitials),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.authorName,
-                      style: const TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                    Text(
-                      '${item.location} · ${item.timeAgo}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey,
+    return InkWell(
+      key: const Key('friendPostCard'),
+      onTap: onOpenPost,
+      borderRadius: BorderRadius.circular(12),
+      child: _Card(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                _Avatar(item.authorInitials),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.authorName,
+                        style: const TextStyle(fontWeight: FontWeight.w500),
                       ),
-                    ),
-                  ],
+                      Text(
+                        '${item.location} · ${item.timeAgo}',
+                        style: Theme.of(context).textTheme.bodySmall
+                            ?.copyWith(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(item.caption),
+            if (item.photoBytes != null) ...[
+              const SizedBox(height: 10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.memory(
+                  item.photoBytes!,
+                  width: double.infinity,
+                  height: 200,
+                  fit: BoxFit.cover,
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 10),
-          Text(item.caption),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              const Icon(Icons.favorite_border, size: 18),
-              const SizedBox(width: 4),
-              Text('${item.likeCount}'),
-              const SizedBox(width: 16),
-              const Icon(Icons.mode_comment_outlined, size: 18),
-              const SizedBox(width: 4),
-              Text('${item.commentCount}'),
-              const Spacer(),
-              const Icon(Icons.share_outlined, size: 18),
-              const SizedBox(width: 12),
-              const Icon(Icons.bookmark_border, size: 18),
-            ],
-          ),
-        ],
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                InkWell(
+                  key: const Key('likeButton'),
+                  onTap: onLike,
+                  customBorder: const CircleBorder(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(
+                      item.isLiked ? Icons.favorite : Icons.favorite_border,
+                      size: 18,
+                      color: item.isLiked ? Colors.red : null,
+                    ),
+                  ),
+                ),
+                Text('${item.likeCount}'),
+                const SizedBox(width: 12),
+                InkWell(
+                  key: const Key('commentButton'),
+                  onTap: onOpenPost,
+                  customBorder: const CircleBorder(),
+                  child: const Padding(
+                    padding: EdgeInsets.all(4),
+                    child: Icon(Icons.mode_comment_outlined, size: 18),
+                  ),
+                ),
+                Text('${item.commentCount}'),
+                const Spacer(),
+                const Icon(Icons.share_outlined, size: 18),
+                const SizedBox(width: 12),
+                const Icon(Icons.bookmark_border, size: 18),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -37,13 +37,13 @@ void main() {
       expect(find.text('Search is coming soon.'), findsOneWidget);
     });
 
-    testWidgets('create post shows a coming-soon message', (tester) async {
+    testWidgets('create post opens the Create Post screen', (tester) async {
       await pumpHomeScreen(tester);
 
       await tester.tap(find.byKey(const Key('createPostButton')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Create post is coming soon.'), findsOneWidget);
+      expect(find.text('Create Post'), findsOneWidget);
     });
 
     testWidgets('tapping a non-Home tab shows a coming-soon message', (
@@ -55,6 +55,26 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Discover is coming soon.'), findsOneWidget);
+    });
+
+    testWidgets('liking a post fills the heart and bumps the count', (
+      tester,
+    ) async {
+      await pumpHomeScreen(tester);
+
+      await tester.tap(find.byKey(const Key('likeButton')).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('25'), findsOneWidget);
+    });
+
+    testWidgets('tapping a post opens Post Details', (tester) async {
+      await pumpHomeScreen(tester);
+
+      await tester.tap(find.byKey(const Key('friendPostCard')).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Post'), findsOneWidget);
     });
   });
 }

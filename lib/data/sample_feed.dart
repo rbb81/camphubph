@@ -1,3 +1,4 @@
+import '../models/comment.dart';
 import '../models/home_feed_item.dart';
 
 /// Placeholder Home Feed content. There's no posts/camps schema in Supabase
@@ -12,7 +13,21 @@ final List<HomeFeedItem> sampleHomeFeed = [
     caption:
         'Perfect weather for a weekend climb — made it to the summit just in time for sunrise.',
     likeCount: 24,
-    commentCount: 5,
+    commentCount: 2,
+    comments: [
+      Comment(
+        authorName: 'Miguel Ibarra',
+        authorInitials: 'MI',
+        text: 'That sunrise shot is unreal, where exactly is this?',
+        timeAgo: '1h',
+      ),
+      Comment(
+        authorName: 'Ate Baby',
+        authorInitials: 'AB',
+        text: 'Adding this to the wishlist immediately.',
+        timeAgo: '45m',
+      ),
+    ],
   ),
   const RecommendedCampItem(
     name: 'Mt. Daraitan campsite',
@@ -36,7 +51,15 @@ final List<HomeFeedItem> sampleHomeFeed = [
     location: 'Taal Lake',
     caption: 'Finally tried camping by the lake with the whole crew. 10/10, would recommend.',
     likeCount: 41,
-    commentCount: 12,
+    commentCount: 1,
+    comments: [
+      Comment(
+        authorName: 'Rico P.',
+        authorInitials: 'RP',
+        text: 'Taal Lake is criminally underrated for camping.',
+        timeAgo: '3h',
+      ),
+    ],
   ),
   const RecommendedCampItem(
     name: 'Nasugbu beach camp',

@@ -1,3 +1,7 @@
+import 'dart:typed_data';
+
+import 'comment.dart';
+
 sealed class HomeFeedItem {
   const HomeFeedItem();
 }
@@ -11,6 +15,9 @@ class FriendPostItem extends HomeFeedItem {
     required this.caption,
     required this.likeCount,
     required this.commentCount,
+    this.photoBytes,
+    this.isLiked = false,
+    this.comments = const [],
   });
 
   final String authorName;
@@ -20,6 +27,27 @@ class FriendPostItem extends HomeFeedItem {
   final String caption;
   final int likeCount;
   final int commentCount;
+  final Uint8List? photoBytes;
+  final bool isLiked;
+  final List<Comment> comments;
+
+  FriendPostItem copyWith({
+    int? likeCount,
+    int? commentCount,
+    bool? isLiked,
+    List<Comment>? comments,
+  }) => FriendPostItem(
+    authorName: authorName,
+    authorInitials: authorInitials,
+    timeAgo: timeAgo,
+    location: location,
+    caption: caption,
+    likeCount: likeCount ?? this.likeCount,
+    commentCount: commentCount ?? this.commentCount,
+    photoBytes: photoBytes,
+    isLiked: isLiked ?? this.isLiked,
+    comments: comments ?? this.comments,
+  );
 }
 
 class CommunityPostItem extends HomeFeedItem {
