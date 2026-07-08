@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import '../data/sample_camps.dart';
+import '../data/sample_communities.dart';
 import '../data/sample_feed.dart';
 import '../data/sample_profile.dart';
+import '../models/camp.dart';
+import '../models/community.dart';
 import '../models/home_feed_item.dart';
 import '../theme/app_theme.dart';
+import 'camp_details_screen.dart';
+import 'community_feed_screen.dart';
 import 'create_post_screen.dart';
 import 'post_details_screen.dart';
 
@@ -54,6 +60,42 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _openCamp(RecommendedCampItem item) {
+    final camp = sampleCamps.firstWhere(
+      (c) => c.name == item.name,
+      orElse: () => Camp(
+        id: item.name,
+        name: item.name,
+        location: item.location,
+        categories: const ['Camping Grounds'],
+        rating: item.rating,
+        reviewCount: 0,
+        distanceKm: item.distanceKm,
+        priceLevel: 1,
+        description: 'No description available yet for this camp.',
+      ),
+    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => CampDetailsScreen(camp: camp)));
+  }
+
+  void _openCommunity(CommunityPostItem item) {
+    final community = sampleCommunities.firstWhere(
+      (c) => c.name == item.communityName,
+      orElse: () => Community(
+        id: item.communityName,
+        name: item.communityName,
+        description: '',
+        icon: Icons.groups_outlined,
+        memberCount: 0,
+      ),
+    );
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => CommunityFeedScreen(community: community)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,6 +139,14 @@ class _HomeScreenState extends State<HomeScreen> {
         type: BottomNavigationBarType.fixed,
         onTap: (index) {
           const labels = ['Home', 'Discover', 'Map', 'Communities', 'Profile'];
+          if (index == 1) {
+            Navigator.of(context).pushNamed('/discover');
+            return;
+          }
+          if (index == 3) {
+            Navigator.of(context).pushNamed('/communities');
+            return;
+          }
           if (index == 4) {
             Navigator.of(context).pushNamed('/profile');
             return;
@@ -121,8 +171,14 @@ class _HomeScreenState extends State<HomeScreen> {
         onLike: () => _toggleLike(index, item),
         onOpenPost: () => _openPost(index, item),
       ),
-      RecommendedCampItem() => _RecommendedCampCard(item: item),
-      CommunityPostItem() => _CommunityPostCard(item: item),
+      RecommendedCampItem() => _RecommendedCampCard(
+        item: item,
+        onTap: () => _openCamp(item),
+      ),
+      CommunityPostItem() => _CommunityPostCard(
+        item: item,
+        onTap: () => _openCommunity(item),
+      ),
       TipItem() => _TipCard(item: item),
       SuggestedUserItem() => _SuggestedUserCard(item: item),
     };
@@ -276,89 +332,101 @@ class _FriendPostCard extends StatelessWidget {
 }
 
 class _RecommendedCampCard extends StatelessWidget {
-  const _RecommendedCampCard({required this.item});
+  const _RecommendedCampCard({required this.item, required this.onTap});
 
   final RecommendedCampItem item;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return _Card(
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppColors.brandDark.withValues(alpha: 0.2)
-                  : AppColors.brand.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+    return InkWell(
+      key: const Key('recommendedCampCard'),
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: _Card(
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.brandDark.withValues(alpha: 0.2)
+                    : AppColors.brand.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                Icons.terrain,
+                color: isDark ? AppColors.brandDark : AppColors.brand,
+              ),
             ),
-            child: Icon(
-              Icons.terrain,
-              color: isDark ? AppColors.brandDark : AppColors.brand,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Recommended near you',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Recommended near you',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.grey,
+                    ),
                   ),
-                ),
-                Text(
-                  item.name,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                ),
-                Text('${item.location} · ${item.distanceKm.toStringAsFixed(0)} km away'),
+                  Text(
+                    item.name,
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  Text('${item.location} · ${item.distanceKm.toStringAsFixed(0)} km away'),
+                ],
+              ),
+            ),
+            Row(
+              children: [
+                const Icon(Icons.star, size: 16, color: AppColors.gold),
+                const SizedBox(width: 2),
+                Text(item.rating.toStringAsFixed(1)),
               ],
             ),
-          ),
-          Row(
-            children: [
-              const Icon(Icons.star, size: 16, color: AppColors.gold),
-              const SizedBox(width: 2),
-              Text(item.rating.toStringAsFixed(1)),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
 class _CommunityPostCard extends StatelessWidget {
-  const _CommunityPostCard({required this.item});
+  const _CommunityPostCard({required this.item, required this.onTap});
 
   final CommunityPostItem item;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? AppColors.brandDark : AppColors.brand;
 
-    return _Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.groups_outlined, size: 16, color: accent),
-              const SizedBox(width: 6),
-              Text(
-                '${item.communityName} · ${item.authorName}',
-                style: TextStyle(fontWeight: FontWeight.w500, color: accent),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(item.snippet),
-        ],
+    return InkWell(
+      key: const Key('communityPostCard'),
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: _Card(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.groups_outlined, size: 16, color: accent),
+                const SizedBox(width: 6),
+                Text(
+                  '${item.communityName} · ${item.authorName}',
+                  style: TextStyle(fontWeight: FontWeight.w500, color: accent),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(item.snippet),
+          ],
+        ),
       ),
     );
   }

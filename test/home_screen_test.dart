@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:camper/screens/communities_screen.dart';
+import 'package:camper/screens/discover_screen.dart';
 import 'package:camper/screens/home_screen.dart';
 
 Future<void> pumpHomeScreen(WidgetTester tester) async {
-  await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+  await tester.pumpWidget(
+    MaterialApp(
+      home: const HomeScreen(),
+      routes: {
+        '/discover': (context) => const DiscoverScreen(),
+        '/communities': (context) => const CommunitiesScreen(),
+      },
+    ),
+  );
 }
 
 void main() {
@@ -41,10 +51,45 @@ void main() {
     ) async {
       await pumpHomeScreen(tester);
 
-      await tester.tap(find.text('Discover'));
+      await tester.tap(find.text('Map'));
       await tester.pump();
 
-      expect(find.text('Discover is coming soon.'), findsOneWidget);
+      expect(find.text('Map is coming soon.'), findsOneWidget);
+    });
+
+    testWidgets('tapping Discover navigates to the Discover screen', (
+      tester,
+    ) async {
+      await pumpHomeScreen(tester);
+
+      await tester.tap(find.text('Discover'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Mountains'), findsOneWidget);
+    });
+
+    testWidgets('tapping Communities navigates to the Communities screen', (
+      tester,
+    ) async {
+      await pumpHomeScreen(tester);
+
+      await tester.tap(find.text('Communities'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Suggested communities'), findsOneWidget);
+    });
+
+    testWidgets('tapping a community post card opens its Community Feed', (
+      tester,
+    ) async {
+      await pumpHomeScreen(tester);
+
+      await tester.tap(find.byKey(const Key('communityPostCard')).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Feed'), findsOneWidget);
+      expect(find.text('Rules'), findsOneWidget);
+      expect(find.text('Members'), findsOneWidget);
     });
 
     testWidgets('tapping create post opens the Create Post screen', (

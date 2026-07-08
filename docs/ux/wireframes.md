@@ -42,7 +42,7 @@ Legend: **Regions** (top to bottom or in layout order) → **Components** → **
 - **Components:** post card (avatar, name, timestamp, location tag, image/carousel, like/comment/share/bookmark row), recommended-camp card (image, name, distance, rating, save button), community-post card (community badge, snippet), trending-destination card, tip card, event card, news card, suggested-user card (avatar, name, follow button).
 - **States:** loading (skeleton cards), empty (new user — mostly recommendations, no friend posts yet), refreshing (pull-to-refresh), error (retry banner).
 - **Primary actions:** like/comment/share/bookmark/report a post, tap through to Post Details/Camp Details/Profile/Community Feed, follow a suggested user, create a post.
-- **Implemented (Phase 3, 2026-07-08):** friend-post like toggle and tap-through to Post Details are live; create-post FAB opens a real Create Post screen. Share/bookmark/report and tap-through for recommended-camp/community/suggested-user cards remain stubbed.
+- **Implemented (Phase 3, 2026-07-08; updated 2026-07-09):** friend-post like toggle and tap-through to Post Details are live; create-post FAB opens a real Create Post screen; recommended-camp cards tap through to Camp Details; community-post cards tap through to Community Feed. Share/bookmark/report and suggested-user follow remain stubbed.
 
 ## Discover
 *(Visual mockup rendered above — see "camper_home_discover_mockup")*
@@ -50,6 +50,7 @@ Legend: **Regions** (top to bottom or in layout order) → **Components** → **
 - **Components:** category tile (icon + label): Mountains, Beaches, Lakes, Forests, Rivers, Camping Grounds, Glamping, Overlanding, Pet Friendly, Family Friendly, Weekend Getaways, Budget Friendly.
 - **States:** default grid; tapping a tile → results list (filtered Camp Details cards) with secondary filters (distance, rating, price).
 - **Primary actions:** select category, refine results, save/wishlist from a result card.
+- **Implemented (Phase 3, 2026-07-08):** `lib/screens/discover_screen.dart` (category grid) and `lib/screens/camp_results_screen.dart` (filtered results list, sort by distance/rating/price + minimum-rating filter bottom sheet, tap-through to Camp Details). Search icon remains stubbed.
 
 ## Search
 - **Regions:** top search input (auto-focused on entry), scoped result tabs/sections, recent searches (empty-state).
@@ -70,12 +71,14 @@ Legend: **Regions** (top to bottom or in layout order) → **Components** → **
 - **Components:** name, location, category tags, rating summary, "Save"/"Add to trip" buttons, photo gallery grid (preview, links to full Photo Gallery), review list preview (links to full Reviews), embedded mini-map, "Write a review" CTA.
 - **States:** default, loading, no-reviews-yet (empty state encouraging first review).
 - **Primary actions:** save, add to wishlist, add to trip, open full photo gallery, open full reviews, write a review, view on full map.
+- **Implemented (Phase 3, 2026-07-08):** `lib/screens/camp_details_screen.dart` — hero header with back/bookmark overlay (Save toggle), title block (name, location, category tags, rating summary), Overview/Reviews/Photos/Map sticky tab bar. Reviews tab lists reviews with a working "Write a review" CTA (`lib/screens/write_review_screen.dart`) that appends the new review and recomputes the aggregate rating live; empty state shown when a camp has none. Photos tab is a simple grid aggregated from review photos (no separate lightbox — see Photo Gallery below). Map tab and "Add to Trip" remain stubbed ("coming soon"), since the Map and Trip Planner screens don't exist yet.
 
 ## Communities (tab landing)
 - **Regions:** top bar (title, search icon), "Your communities" section, "Suggested communities" section, bottom tab bar.
 - **Components:** community row/card (icon or cover image, name, member count, join button or "joined" state).
 - **States:** empty (no joined communities yet — shows suggestions prominently), populated.
 - **Primary actions:** join/leave a community, tap through to Community Feed, search communities.
+- **Implemented (Phase 3, 2026-07-09):** `lib/screens/communities_screen.dart` — "Your communities"/"Suggested communities" sections, join/leave toggle, tap-through to Community Feed. Search icon remains stubbed.
 
 ## Community Feed
 *(Visual mockup rendered above — see "camper_community_profile_mockup")*
@@ -83,6 +86,7 @@ Legend: **Regions** (top to bottom or in layout order) → **Components** → **
 - **Components:** pinned-post card (distinct visual treatment), regular post card, join/leave button (if not a member), moderator badge on relevant posts/authors.
 - **States:** preview mode (not yet joined — read-only, join CTA prominent), member mode (full posting access), empty feed.
 - **Primary actions:** join, post, comment, view rules, view members, view moderators (if authorized).
+- **Implemented (Phase 3, 2026-07-09):** `lib/screens/community_feed_screen.dart` — Feed/Rules/Members tabs, pinned posts rendered above regular posts with distinct styling, moderator badges, like toggle, join/leave (updates carry back to the Communities landing screen), and a lightweight compose sheet (caption only) gated on membership — tapping "new post" while not joined prompts to join first instead of showing a separate read-only visual mode. Not yet built: comment threads on community posts (stubbed "coming soon"), photo attachments on community posts, moderator tools to edit rules/members.
 
 ## Post Details
 - **Regions:** original post (full, expanded), comment thread, comment composer (sticky bottom).
@@ -162,12 +166,14 @@ Legend: **Regions** (top to bottom or in layout order) → **Components** → **
 - **States:** list — empty ("no reviews yet"); form — draft, submitting, success, validation error (rating required).
 - **Primary actions (list):** tap a review to edit/delete.
 - **Primary actions (form):** set rating, add photos, add pros/cons, set visit date, submit.
+- **Implemented (Phase 3, 2026-07-08):** the write/edit-from-Camp-Details form is live at `lib/screens/write_review_screen.dart` — star rating (required, validates on submit), add/remove pros and cons as chips, optional tips textarea, visit-date picker, optional single photo (`image_picker`). Not yet built: the list view of a user's own written reviews from Profile (Profile's Reviews tab is still `_comingSoon`-stubbed), and editing/deleting an existing review.
 
 ## Photo Gallery
 - **Regions:** header (context: camp name or profile name), grid of photos, lightbox on tap.
 - **Components:** photo grid (uniform thumbnails), lightbox (full image, swipe between photos, source post/review link, uploader credit).
 - **States:** empty (only for a brand-new camp/profile with no content yet), populated, lightbox open.
 - **Primary actions:** tap to open lightbox, swipe through photos, tap through to the source Post Details or Review.
+- **Not yet implemented:** Camp Details' Photos tab currently shows a plain grid of review photos with no lightbox, swipe, or source-link — this dedicated full-screen gallery is still spec-only.
 
 ---
 

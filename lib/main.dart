@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/env.dart';
+import 'screens/communities_screen.dart';
+import 'screens/discover_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/landing_screen.dart';
@@ -40,6 +42,8 @@ class CamperApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/forgot-password': (context) => const ForgotPasswordScreen(),
         '/home': (context) => const HomeScreen(),
+        '/discover': (context) => const DiscoverScreen(),
+        '/communities': (context) => const CommunitiesScreen(),
         '/profile': (context) => const ProfileScreen(),
       },
     );
