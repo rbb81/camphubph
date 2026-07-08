@@ -1,6 +1,5 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../data/sample_profile.dart';
 import '../models/profile.dart';
@@ -58,56 +57,64 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 640),
-            child: CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(child: _buildHeader(context)),
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: _StickyTabBarDelegate(
-                    TabBar(
-                      controller: _tabController,
-                      isScrollable: true,
-                      tabs: _tabLabels.map((l) => Tab(text: l)).toList(),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        body: SafeArea(
+          top: false,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640),
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(child: _buildHeader(context)),
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _StickyTabBarDelegate(
+                      TabBar(
+                        controller: _tabController,
+                        isScrollable: true,
+                        tabs: _tabLabels.map((l) => Tab(text: l)).toList(),
+                      ),
                     ),
                   ),
-                ),
-                SliverFillRemaining(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _PostsTab(
-                        items: sampleProfilePosts,
-                        onTap: () => _comingSoon('Post details'),
-                      ),
-                      _PhotosTab(
-                        items: sampleProfilePhotos,
-                        onTap: () => _comingSoon('Photo details'),
-                      ),
-                      _ReviewsTab(
-                        items: sampleProfileReviews,
-                        onTap: () => _comingSoon('Review details'),
-                      ),
-                      _SavedCampsTab(
-                        items: sampleSavedCamps,
-                        onTap: () => _comingSoon('Camp details'),
-                      ),
-                      _WishlistTab(
-                        items: sampleWishlist,
-                        onTap: () => _comingSoon('Camp details'),
-                      ),
-                      _CompletedTripsTab(
-                        items: sampleCompletedTrips,
-                        onTap: () => _comingSoon('Trip details'),
-                      ),
-                    ],
+                  SliverFillRemaining(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _PostsTab(
+                          items: sampleProfilePosts,
+                          onTap: () => _comingSoon('Post details'),
+                        ),
+                        _PhotosTab(
+                          items: sampleProfilePhotos,
+                          onTap: () => _comingSoon('Photo details'),
+                        ),
+                        _ReviewsTab(
+                          items: sampleProfileReviews,
+                          onTap: () => _comingSoon('Review details'),
+                        ),
+                        _SavedCampsTab(
+                          items: sampleSavedCamps,
+                          onTap: () => _comingSoon('Camp details'),
+                        ),
+                        _WishlistTab(
+                          items: sampleWishlist,
+                          onTap: () => _comingSoon('Camp details'),
+                        ),
+                        _CompletedTripsTab(
+                          items: sampleCompletedTrips,
+                          onTap: () => _comingSoon('Trip details'),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
