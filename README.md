@@ -2,7 +2,7 @@
 
 Camper is a camping-community app for the Philippines — discover camps, share trips, and connect with other campers. Built with Flutter so the same codebase targets web, Android, and iOS. Product/UX planning docs live in [`docs/`](docs/).
 
-Currently implemented: registration, login, and forgot-password screens (responsive, web + mobile) wired to Supabase Auth, a Home Feed screen (mixed feed, bottom tab bar, per [docs/ux/wireframes.md](docs/ux/wireframes.md)) shown after a successful login, and a Profile screen (own-profile view + a working Edit Profile form) reachable from Home's bottom tab bar.
+Currently implemented (see [docs/ux/wireframes.md](docs/ux/wireframes.md) for the full per-screen spec and status): registration, login, and forgot-password screens (responsive, web + mobile) wired to Supabase Auth; a Home Feed (mixed feed, create post, likes/comments, bottom tab bar); Discover → Camp Results → Camp Details (with a working Reviews/write-a-review flow); Communities → Community Feed, plus creating a new community with a public/private setting; and a Profile screen (own-profile view + Edit Profile form). All content screens render from static sample data (`lib/data/`) — there's no real Supabase schema for posts/camps/reviews/communities/profiles yet.
 
 ## Prerequisites
 
@@ -190,28 +190,23 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    chromedriver --port=4444
    ```
 
-3. In another terminal, run a flow. Run these **without** `--dart-define-from-file` so Supabase is intentionally left unconfigured — each test asserts the dummy auth fallback succeeds, the same case the unit tests cover, but through a real browser instead of the widget-test harness:
+3. In another terminal, run a flow. Every file below pumps its screen directly (no real login/navigation needed to reach it) and has been run against a real Chrome window in this environment (chromedriver 149.x) — **all 15 currently pass**:
 
    ```bash
-   flutter drive --driver=test_driver/integration_test.dart --target=integration_test/register_test.dart -d chrome
-   flutter drive --driver=test_driver/integration_test.dart --target=integration_test/login_test.dart -d chrome
-   flutter drive --driver=test_driver/integration_test.dart --target=integration_test/forgot_password_test.dart -d chrome
+   flutter drive --driver=test_driver/integration_test.dart --target=integration_test/<file>.dart -d chrome
    ```
 
-   Each opens an actual Chrome window, navigates from the landing page to the relevant screen, submits an empty form and checks the validation messages, then fills a fully valid form and confirms it succeeds via the dummy auth fallback instead of crashing. All three were run and passed in this environment against a real Chrome window (chromedriver 149.x).
+   | File | Covers |
+   | --- | --- |
+   | `register_test.dart`, `login_test.dart`, `forgot_password_test.dart` | Run **without** `--dart-define-from-file` on purpose — each asserts empty-form validation, then a fully valid submit succeeding via the dummy auth fallback (Supabase intentionally left unconfigured). |
+   | `home_test.dart` | Feed renders; search/create-post/tab-bar "coming soon" messages; like toggle; tap-through to Post Details, Camp Details, Discover. |
+   | `discover_test.dart`, `camp_results_test.dart` | Category grid renders; tapping a category filters to matching camps; tapping a result opens Camp Details. |
+   | `camp_details_test.dart`, `write_review_test.dart` | Reviews tab renders; writing a review updates the aggregate rating/count live; review-form validation and pro/con chip add. |
+   | `create_post_test.dart`, `post_details_test.dart` | Caption validation and cancel; like toggle and adding a comment updates the thread. |
+   | `profile_test.dart`, `edit_profile_test.dart` | Identity block/tabs render, tab switching, Edit Profile navigation; form pre-populates and validates. |
+   | `communities_test.dart`, `community_feed_test.dart`, `create_community_test.dart` | Your/Suggested sections, join/leave, tap-through to Community Feed, create-community flow; pinned posts, Rules/Members tabs, like toggle, compose; name/description validation and Public/Private toggle. |
 
-   ```bash
-   flutter drive --driver=test_driver/integration_test.dart --target=integration_test/home_test.dart -d chrome
-   ```
-
-   Pumps `HomeScreen` directly rather than going through a real login (same reasoning as the Maestro `home_smoke.yaml` flow — reaching it via a real sign-in adds an extra step this test doesn't need), and checks the feed renders plus the search/create-post/tab-bar "coming soon" messages. Also run and passed here against a real Chrome window.
-
-   ```bash
-   flutter drive --driver=test_driver/integration_test.dart --target=integration_test/profile_test.dart -d chrome
-   flutter drive --driver=test_driver/integration_test.dart --target=integration_test/edit_profile_test.dart -d chrome
-   ```
-
-   Same "pump the screen directly" approach as `home_test.dart`. `profile_test.dart` checks the identity block/tabs render, the settings "coming soon" message, tab switching, and Edit Profile navigation; `edit_profile_test.dart` checks the form pre-populates and name validation. Both run and passed here against a real Chrome window (one run of `profile_test.dart` hit a transient `AppConnectionException` while waiting for the debug service to connect — a plain retry succeeded, so treat that as flaky rather than a real failure if it recurs).
+   One run of `profile_test.dart` previously hit a transient `AppConnectionException` while waiting for the debug service to connect — a plain retry succeeded, so treat that as flaky rather than a real failure if it recurs.
 
 See [`integration_test/`](integration_test/) and the driver shim at [`test_driver/integration_test.dart`](test_driver/integration_test.dart).
 
@@ -248,11 +243,9 @@ lib/config/env.dart         reads SUPABASE_URL / SUPABASE_ANON_KEY
 lib/services/auth_service.dart  Supabase Auth, with a dummy fallback when unconfigured
 lib/theme/app_theme.dart    light/dark theme (nature-inspired palette)
 lib/widgets/auth_layout.dart shared layout for register/login/forgot-password
-lib/screens/                landing, registration, login, forgot-password, home, profile, edit-profile screens
-lib/models/home_feed_item.dart Home Feed content types
-lib/models/profile.dart     Profile content types (UserProfile, experience level, tab items)
-lib/data/sample_feed.dart   placeholder Home Feed content (no posts/camps schema yet)
-lib/data/sample_profile.dart placeholder Profile content (no profiles schema yet)
+lib/screens/                landing, auth, home, discover/camp results/camp details/write review, create post/post details, communities/community feed/create community, profile/edit profile screens
+lib/models/                 content types (HomeFeedItem, Camp, Review, Comment, Profile, Community, CommunityMember, CommunityPost)
+lib/data/                   placeholder sample content for every screen above (no matching Supabase schema yet)
 test/                       unit/widget tests
 integration_test/           Flutter driver end-to-end tests (web)
 test_driver/                driver shim for integration_test on web
