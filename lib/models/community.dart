@@ -9,6 +9,7 @@ class Community {
     required this.memberCount,
     this.rules = const [],
     this.isJoined = false,
+    this.isPrivate = false,
   });
 
   final String id;
@@ -18,6 +19,7 @@ class Community {
   final int memberCount;
   final List<String> rules;
   final bool isJoined;
+  final bool isPrivate;
 
   Community copyWith({bool? isJoined, int? memberCount}) => Community(
     id: id,
@@ -27,5 +29,6 @@ class Community {
     memberCount: memberCount ?? this.memberCount,
     rules: rules,
     isJoined: isJoined ?? this.isJoined,
+    isPrivate: isPrivate,
   );
 }

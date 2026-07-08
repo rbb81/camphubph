@@ -158,7 +158,22 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen>
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(_community.name),
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(_community.name, overflow: TextOverflow.ellipsis),
+              ),
+              if (_community.isPrivate) ...[
+                const SizedBox(width: 6),
+                const Icon(
+                  Icons.lock_outline,
+                  key: Key('feedPrivateIcon'),
+                  size: 16,
+                ),
+              ],
+            ],
+          ),
           actions: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),

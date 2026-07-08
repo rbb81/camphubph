@@ -74,11 +74,11 @@ Legend: **Regions** (top to bottom or in layout order) → **Components** → **
 - **Implemented (Phase 3, 2026-07-08):** `lib/screens/camp_details_screen.dart` — hero header with back/bookmark overlay (Save toggle), title block (name, location, category tags, rating summary), Overview/Reviews/Photos/Map sticky tab bar. Reviews tab lists reviews with a working "Write a review" CTA (`lib/screens/write_review_screen.dart`) that appends the new review and recomputes the aggregate rating live; empty state shown when a camp has none. Photos tab is a simple grid aggregated from review photos (no separate lightbox — see Photo Gallery below). Map tab and "Add to Trip" remain stubbed ("coming soon"), since the Map and Trip Planner screens don't exist yet.
 
 ## Communities (tab landing)
-- **Regions:** top bar (title, search icon), "Your communities" section, "Suggested communities" section, bottom tab bar.
-- **Components:** community row/card (icon or cover image, name, member count, join button or "joined" state).
+- **Regions:** top bar (title, search icon), "Your communities" section, "Suggested communities" section, floating "create community" action, bottom tab bar.
+- **Components:** community row/card (icon or cover image, name, private-community lock badge, member count, join button or "joined" state), create-community form (name, description, public/private setting).
 - **States:** empty (no joined communities yet — shows suggestions prominently), populated.
-- **Primary actions:** join/leave a community, tap through to Community Feed, search communities.
-- **Implemented (Phase 3, 2026-07-09):** `lib/screens/communities_screen.dart` — "Your communities"/"Suggested communities" sections, join/leave toggle, tap-through to Community Feed. Search icon remains stubbed.
+- **Primary actions:** join/leave a community, tap through to Community Feed, search communities, create a new community (choosing public or private).
+- **Implemented (Phase 3, 2026-07-09):** `lib/screens/communities_screen.dart` — "Your communities"/"Suggested communities" sections, join/leave toggle, tap-through to Community Feed, lock badge on private communities. `lib/screens/create_community_screen.dart` — name/description form with a Public/Private `SegmentedButton`; a created community is auto-joined and inserted at the top of "Your communities". Search icon remains stubbed. Not yet built: any enforcement of private-community visibility or a request-to-join flow — the setting is currently just stored and displayed, not gated.
 
 ## Community Feed
 *(Visual mockup rendered above — see "camper_community_profile_mockup")*

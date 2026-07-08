@@ -65,5 +65,52 @@ void main() {
 
       expect(find.text('Search is coming soon.'), findsOneWidget);
     });
+
+    testWidgets('shows a private badge on a private community', (
+      tester,
+    ) async {
+      await pumpCommunitiesScreen(tester);
+
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('communityCard_palawan-dreamers')),
+          matching: find.byKey(const Key('privateIcon_palawan-dreamers')),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('privateIcon_luzon-overlanders')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('creating a community adds it to Your communities', (
+      tester,
+    ) async {
+      await pumpCommunitiesScreen(tester);
+
+      await tester.tap(find.byKey(const Key('createCommunityButton')));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('communityNameField')),
+        'Sierra Madre Hikers',
+      );
+      await tester.enterText(
+        find.byKey(const Key('communityDescriptionField')),
+        'Trail conditions and meetups around the Sierra Madre range.',
+      );
+      await tester.tap(find.byKey(const Key('createCommunitySubmitButton')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sierra Madre Hikers'), findsOneWidget);
+      expect(find.text('1 members'), findsOneWidget);
+
+      final createdY = tester.getTopLeft(find.text('Sierra Madre Hikers')).dy;
+      final suggestedHeaderY = tester
+          .getTopLeft(find.text('Suggested communities'))
+          .dy;
+      expect(createdY, lessThan(suggestedHeaderY));
+    });
   });
 }

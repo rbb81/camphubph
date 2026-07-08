@@ -96,6 +96,7 @@ final List<Community> sampleCommunities = [
     description: 'Planning trips to Palawan\'s islands and campsites.',
     icon: Icons.terrain,
     memberCount: 3021,
+    isPrivate: true,
     rules: [
       'Check permit requirements before posting a route.',
       'Respect marine sanctuary and no-camping zones.',

@@ -4,6 +4,7 @@ import '../data/sample_communities.dart';
 import '../models/community.dart';
 import '../theme/app_theme.dart';
 import 'community_feed_screen.dart';
+import 'create_community_screen.dart';
 
 class CommunitiesScreen extends StatefulWidget {
   const CommunitiesScreen({super.key});
@@ -44,6 +45,14 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
       final index = _communities.indexWhere((c) => c.id == updated.id);
       if (index != -1) _communities[index] = updated;
     });
+  }
+
+  Future<void> _createCommunity() async {
+    final created = await Navigator.of(
+      context,
+    ).push<Community>(MaterialPageRoute(builder: (_) => const CreateCommunityScreen()));
+    if (created == null) return;
+    setState(() => _communities.insert(0, created));
   }
 
   @override
@@ -111,6 +120,11 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        key: const Key('createCommunityButton'),
+        onPressed: _createCommunity,
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }
@@ -163,9 +177,25 @@ class _CommunityCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    community.name,
-                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          community.name,
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (community.isPrivate) ...[
+                        const SizedBox(width: 6),
+                        Icon(
+                          Icons.lock_outline,
+                          key: Key('privateIcon_${community.id}'),
+                          size: 14,
+                          color: Colors.grey,
+                        ),
+                      ],
+                    ],
                   ),
                   Text(
                     '${community.memberCount} members',
