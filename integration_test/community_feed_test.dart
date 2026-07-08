@@ -71,5 +71,40 @@ void main() {
 
       expect(find.text('Fresh trail report from today.'), findsOneWidget);
     });
+
+    testWidgets(
+      'requesting to join a private community shows Requested, then Joined after approval',
+      (tester) async {
+        final privateCommunity = sampleCommunities.firstWhere(
+          (c) => c.id == 'palawan-dreamers',
+        );
+        await pumpCommunityFeedScreen(tester, community: privateCommunity);
+
+        final joinButton = find.byKey(const Key('feedJoinButton'));
+        expect(
+          find.descendant(
+            of: joinButton,
+            matching: find.text('Request to Join'),
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(joinButton);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.descendant(of: joinButton, matching: find.text('Requested')),
+          findsOneWidget,
+        );
+
+        await Future.delayed(const Duration(seconds: 3));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.descendant(of: joinButton, matching: find.text('Joined')),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }

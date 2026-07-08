@@ -76,5 +76,41 @@ void main() {
 
       expect(find.text('Sierra Madre Hikers'), findsOneWidget);
     });
+
+    testWidgets(
+      'requesting to join a private community shows Requested, then Joined after approval',
+      (tester) async {
+        await pumpCommunitiesScreen(tester);
+
+        final joinButton = find.byKey(
+          const Key('joinButton_palawan-dreamers'),
+        );
+        expect(
+          find.descendant(
+            of: joinButton,
+            matching: find.text('Request to Join'),
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(joinButton);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.descendant(of: joinButton, matching: find.text('Requested')),
+          findsOneWidget,
+        );
+
+        // The approval is simulated on a real 2-second delay (this test runs
+        // in a real browser, not a fake-clock harness), so wait it out.
+        await Future.delayed(const Duration(seconds: 3));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.descendant(of: joinButton, matching: find.text('Joined')),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }

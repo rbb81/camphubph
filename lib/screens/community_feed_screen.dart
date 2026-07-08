@@ -52,12 +52,56 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen>
   }
 
   void _toggleJoin() {
+    if (_community.isPrivate && !_community.isJoined) {
+      _toggleJoinRequest();
+      return;
+    }
     setState(() {
       _community = _community.copyWith(
         isJoined: !_community.isJoined,
         memberCount: _community.isJoined
             ? _community.memberCount - 1
             : _community.memberCount + 1,
+      );
+    });
+  }
+
+  void _toggleJoinRequest() {
+    if (_community.isPending) {
+      setState(() {
+        _community = _community.copyWith(isPending: false);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Canceled your request to join ${_community.name}.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _community = _community.copyWith(isPending: true);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Request sent to join ${_community.name}.')),
+    );
+
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      if (!_community.isPending) return;
+      setState(() {
+        _community = _community.copyWith(
+          isPending: false,
+          isJoined: true,
+          memberCount: _community.memberCount + 1,
+        );
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Your request to join ${_community.name} was approved!',
+          ),
+        ),
       );
     });
   }
@@ -144,6 +188,36 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen>
     });
   }
 
+  Widget _buildJoinButton() {
+    const key = Key('feedJoinButton');
+    if (_community.isJoined) {
+      return OutlinedButton(
+        key: key,
+        onPressed: _toggleJoin,
+        child: const Text('Joined'),
+      );
+    }
+    if (_community.isPrivate) {
+      if (_community.isPending) {
+        return OutlinedButton(
+          key: key,
+          onPressed: _toggleJoin,
+          child: const Text('Requested'),
+        );
+      }
+      return FilledButton(
+        key: key,
+        onPressed: _toggleJoin,
+        child: const Text('Request to Join'),
+      );
+    }
+    return FilledButton(
+      key: key,
+      onPressed: _toggleJoin,
+      child: const Text('Join'),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final pinned = _posts.where((p) => p.isPinned).toList();
@@ -177,19 +251,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen>
           actions: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Center(
-                child: _community.isJoined
-                    ? OutlinedButton(
-                        key: const Key('feedJoinButton'),
-                        onPressed: _toggleJoin,
-                        child: const Text('Joined'),
-                      )
-                    : FilledButton(
-                        key: const Key('feedJoinButton'),
-                        onPressed: _toggleJoin,
-                        child: const Text('Join'),
-                      ),
-              ),
+              child: Center(child: _buildJoinButton()),
             ),
           ],
           bottom: TabBar(

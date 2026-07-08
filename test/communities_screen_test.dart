@@ -112,5 +112,81 @@ void main() {
           .dy;
       expect(createdY, lessThan(suggestedHeaderY));
     });
+
+    testWidgets(
+      'tapping Request to Join on a private community shows Requested, then Joined after approval',
+      (tester) async {
+        await pumpCommunitiesScreen(tester);
+
+        final joinButton = find.byKey(
+          const Key('joinButton_palawan-dreamers'),
+        );
+        expect(
+          find.descendant(
+            of: joinButton,
+            matching: find.text('Request to Join'),
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(joinButton);
+        await tester.pump();
+
+        expect(
+          find.descendant(of: joinButton, matching: find.text('Requested')),
+          findsOneWidget,
+        );
+        expect(
+          find.text('Request sent to join Palawan Dreamers.'),
+          findsOneWidget,
+        );
+
+        // The auto-approval snackbar queues behind the still-showing "Request
+        // sent" one (ScaffoldMessenger only shows one at a time), so assert
+        // on the button state rather than the second snackbar's text.
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pump();
+
+        expect(
+          find.descendant(of: joinButton, matching: find.text('Joined')),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('canceling a pending request reverts to Request to Join', (
+      tester,
+    ) async {
+      await pumpCommunitiesScreen(tester);
+
+      final joinButton = find.byKey(const Key('joinButton_palawan-dreamers'));
+      await tester.tap(joinButton);
+      await tester.pump();
+      expect(
+        find.descendant(of: joinButton, matching: find.text('Requested')),
+        findsOneWidget,
+      );
+
+      await tester.tap(joinButton);
+      await tester.pump();
+
+      expect(
+        find.descendant(
+          of: joinButton,
+          matching: find.text('Request to Join'),
+        ),
+        findsOneWidget,
+      );
+
+      // The canceled request must not be auto-approved by the pending timer.
+      await tester.pump(const Duration(seconds: 2));
+      expect(
+        find.descendant(
+          of: joinButton,
+          matching: find.text('Request to Join'),
+        ),
+        findsOneWidget,
+      );
+    });
   });
 }

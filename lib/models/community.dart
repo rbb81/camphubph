@@ -10,6 +10,7 @@ class Community {
     this.rules = const [],
     this.isJoined = false,
     this.isPrivate = false,
+    this.isPending = false,
   });
 
   final String id;
@@ -20,15 +21,18 @@ class Community {
   final List<String> rules;
   final bool isJoined;
   final bool isPrivate;
+  final bool isPending;
 
-  Community copyWith({bool? isJoined, int? memberCount}) => Community(
-    id: id,
-    name: name,
-    description: description,
-    icon: icon,
-    memberCount: memberCount ?? this.memberCount,
-    rules: rules,
-    isJoined: isJoined ?? this.isJoined,
-    isPrivate: isPrivate,
-  );
+  Community copyWith({bool? isJoined, int? memberCount, bool? isPending}) =>
+      Community(
+        id: id,
+        name: name,
+        description: description,
+        icon: icon,
+        memberCount: memberCount ?? this.memberCount,
+        rules: rules,
+        isJoined: isJoined ?? this.isJoined,
+        isPrivate: isPrivate,
+        isPending: isPending ?? this.isPending,
+      );
 }

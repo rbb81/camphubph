@@ -23,6 +23,10 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
   }
 
   void _toggleJoin(Community community) {
+    if (community.isPrivate && !community.isJoined) {
+      _toggleJoinRequest(community);
+      return;
+    }
     setState(() {
       final index = _communities.indexWhere((c) => c.id == community.id);
       _communities[index] = community.copyWith(
@@ -30,6 +34,49 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
         memberCount: community.isJoined
             ? community.memberCount - 1
             : community.memberCount + 1,
+      );
+    });
+  }
+
+  void _toggleJoinRequest(Community community) {
+    if (community.isPending) {
+      setState(() {
+        final index = _communities.indexWhere((c) => c.id == community.id);
+        _communities[index] = community.copyWith(isPending: false);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Canceled your request to join ${community.name}.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      final index = _communities.indexWhere((c) => c.id == community.id);
+      _communities[index] = community.copyWith(isPending: true);
+    });
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Request sent to join ${community.name}.')));
+
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      final index = _communities.indexWhere((c) => c.id == community.id);
+      if (index == -1 || !_communities[index].isPending) return;
+      setState(() {
+        _communities[index] = _communities[index].copyWith(
+          isPending: false,
+          isJoined: true,
+          memberCount: _communities[index].memberCount + 1,
+        );
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Your request to join ${community.name} was approved!',
+          ),
+        ),
       );
     });
   }
@@ -207,20 +254,40 @@ class _CommunityCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            community.isJoined
-                ? OutlinedButton(
-                    key: Key('joinButton_${community.id}'),
-                    onPressed: onToggleJoin,
-                    child: const Text('Joined'),
-                  )
-                : FilledButton(
-                    key: Key('joinButton_${community.id}'),
-                    onPressed: onToggleJoin,
-                    child: const Text('Join'),
-                  ),
+            _buildJoinButton(),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildJoinButton() {
+    final key = Key('joinButton_${community.id}');
+    if (community.isJoined) {
+      return OutlinedButton(
+        key: key,
+        onPressed: onToggleJoin,
+        child: const Text('Joined'),
+      );
+    }
+    if (community.isPrivate) {
+      if (community.isPending) {
+        return OutlinedButton(
+          key: key,
+          onPressed: onToggleJoin,
+          child: const Text('Requested'),
+        );
+      }
+      return FilledButton(
+        key: key,
+        onPressed: onToggleJoin,
+        child: const Text('Request to Join'),
+      );
+    }
+    return FilledButton(
+      key: key,
+      onPressed: onToggleJoin,
+      child: const Text('Join'),
     );
   }
 }

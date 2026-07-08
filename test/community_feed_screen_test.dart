@@ -22,6 +22,15 @@ const _notJoined = Community(
   memberCount: 942,
 );
 
+const _private = Community(
+  id: 'palawan-dreamers',
+  name: 'Palawan Dreamers',
+  description: "Planning trips to Palawan's islands and campsites.",
+  icon: Icons.terrain,
+  memberCount: 3021,
+  isPrivate: true,
+);
+
 Future<void> pumpCommunityFeedScreen(
   WidgetTester tester, {
   Community community = _joined,
@@ -158,5 +167,37 @@ void main() {
         findsOneWidget,
       );
     });
+
+    testWidgets(
+      'requesting to join a private community shows Requested, then Joined after approval',
+      (tester) async {
+        await pumpCommunityFeedScreen(tester, community: _private);
+
+        final joinButton = find.byKey(const Key('feedJoinButton'));
+        expect(
+          find.descendant(
+            of: joinButton,
+            matching: find.text('Request to Join'),
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(joinButton);
+        await tester.pump();
+
+        expect(
+          find.descendant(of: joinButton, matching: find.text('Requested')),
+          findsOneWidget,
+        );
+
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pump();
+
+        expect(
+          find.descendant(of: joinButton, matching: find.text('Joined')),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }
