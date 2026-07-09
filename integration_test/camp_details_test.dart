@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'package:camper/data/sample_camps.dart';
+import 'package:camper/data/sample_message_threads.dart';
 import 'package:camper/models/camp.dart';
+import 'package:camper/models/message_thread.dart';
 import 'package:camper/screens/camp_details_screen.dart';
 
 final _campWithReviews = sampleCamps.firstWhere((c) => c.id == 'daraitan');
@@ -23,6 +25,18 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Camp Details (real browser)', () {
+    late List<MessageThread> threadsSnapshot;
+
+    setUp(() {
+      threadsSnapshot = List.of(sampleMessageThreads);
+    });
+
+    tearDown(() {
+      sampleMessageThreads
+        ..clear()
+        ..addAll(threadsSnapshot);
+    });
+
     testWidgets('renders the identity block and Reviews tab content', (
       tester,
     ) async {
@@ -54,5 +68,26 @@ void main() {
       expect(find.text('5.0'), findsOneWidget);
       expect(find.text('(1 review)'), findsOneWidget);
     });
+
+    testWidgets(
+      'Message Campsite opens a thread and a sent message appears',
+      (tester) async {
+        await pumpCampDetailsScreen(tester, camp: _campWithoutReviews);
+
+        await tester.tap(find.byKey(const Key('messageCampsiteButton')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('No messages yet. Say hello!'), findsOneWidget);
+
+        await tester.enterText(
+          find.byKey(const Key('messageComposerField')),
+          'What are the check-in hours?',
+        );
+        await tester.tap(find.byKey(const Key('sendMessageButton')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('What are the check-in hours?'), findsOneWidget);
+      },
+    );
   });
 }

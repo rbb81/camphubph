@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../data/sample_message_threads.dart';
 import '../data/sample_reservations.dart';
+import '../models/message_thread.dart';
 import '../models/reservation.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import 'add_reservation_screen.dart';
+import 'message_thread_screen.dart';
 
 /// Shown when the dashboard is reached without a real signed-in session
 /// (e.g. via Landing's "Preview Camp Owner View (test)" shortcut).
@@ -21,11 +24,35 @@ class CampOwnerDashboardScreen extends StatefulWidget {
 
 class _CampOwnerDashboardScreenState extends State<CampOwnerDashboardScreen> {
   late List<Reservation> _reservations;
+  late List<MessageThread> _threads;
 
   @override
   void initState() {
     super.initState();
     _reservations = List.of(sampleReservations);
+    _threads = List.of(sampleMessageThreads);
+  }
+
+  List<MessageThread> get _sortedThreads {
+    DateTime lastActivity(MessageThread t) =>
+        t.messages.isEmpty ? DateTime.fromMillisecondsSinceEpoch(0) : t.messages.last.sentAt;
+    return List.of(_threads)
+      ..sort((a, b) => lastActivity(b).compareTo(lastActivity(a)));
+  }
+
+  Future<void> _openThread(MessageThread thread) async {
+    final session = AuthService.instance.currentSession;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MessageThreadScreen(
+          thread: thread,
+          viewerIsOwner: true,
+          viewerName: session?.fullName ?? _defaultHostName,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    setState(() => _threads = List.of(sampleMessageThreads));
   }
 
   List<Reservation> get _sorted {
@@ -120,6 +147,22 @@ class _CampOwnerDashboardScreenState extends State<CampOwnerDashboardScreen> {
                           _setStatus(reservation, ReservationStatus.confirmed),
                       onDecline: () =>
                           _setStatus(reservation, ReservationStatus.declined),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                const SizedBox(height: 24),
+                Text(
+                  'Messages',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 12),
+                if (_threads.isEmpty)
+                  const _EmptyMessages()
+                else
+                  for (final thread in _sortedThreads) ...[
+                    _ThreadCard(
+                      thread: thread,
+                      onTap: () => _openThread(thread),
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -330,6 +373,93 @@ class _ReservationCard extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _EmptyMessages extends StatelessWidget {
+  const _EmptyMessages();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.chat_bubble_outline, size: 48, color: Colors.grey),
+            SizedBox(height: 12),
+            Text('No messages yet.', style: TextStyle(color: Colors.grey)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ThreadCard extends StatelessWidget {
+  const _ThreadCard({required this.thread, required this.onTap});
+
+  final MessageThread thread;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = isDark ? AppColors.brandDark : AppColors.brand;
+    final lastMessage = thread.messages.isEmpty
+        ? 'No messages yet.'
+        : thread.messages.last.text;
+
+    return InkWell(
+      key: Key('threadCard_${thread.id}'),
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+          ),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: accent.withValues(alpha: 0.12),
+              child: Icon(Icons.person_outline, color: accent, size: 18),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    thread.guestName,
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    thread.campName,
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    lastMessage,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.grey),
+          ],
+        ),
       ),
     );
   }

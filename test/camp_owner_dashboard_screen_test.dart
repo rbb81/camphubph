@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:camper/data/sample_message_threads.dart';
 import 'package:camper/data/sample_reservations.dart';
 import 'package:camper/models/auth_result.dart';
+import 'package:camper/models/message_thread.dart';
 import 'package:camper/models/reservation.dart';
 import 'package:camper/models/user_role.dart';
 import 'package:camper/screens/camp_owner_dashboard_screen.dart';
@@ -35,10 +37,12 @@ Future<void> _pickDate(WidgetTester tester, Key fieldKey, DateTime date) async {
 
 void main() {
   late List<Reservation> reservationsSnapshot;
+  late List<MessageThread> threadsSnapshot;
   late AuthResult? sessionSnapshot;
 
   setUp(() {
     reservationsSnapshot = List.of(sampleReservations);
+    threadsSnapshot = List.of(sampleMessageThreads);
     sessionSnapshot = AuthService.instance.currentSession;
   });
 
@@ -46,6 +50,9 @@ void main() {
     sampleReservations
       ..clear()
       ..addAll(reservationsSnapshot);
+    sampleMessageThreads
+      ..clear()
+      ..addAll(threadsSnapshot);
     AuthService.instance.currentSession = sessionSnapshot;
   });
 
@@ -183,6 +190,53 @@ void main() {
           sampleReservations.any((r) => r.guestName == 'New Test Guest'),
           isTrue,
         );
+      },
+    );
+
+    testWidgets('renders seeded message threads with guest and preview', (
+      tester,
+    ) async {
+      await _pumpDashboard(tester);
+
+      expect(find.text('Ana Dela Cruz'), findsOneWidget);
+      // The card preview shows the most recent message (the owner's reply),
+      // not the guest's opening question.
+      expect(
+        find.textContaining("It's open and calm this week"),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+      'opening a thread and replying as owner updates the thread and preview',
+      (tester) async {
+        await _pumpDashboard(tester);
+
+        await tester.tap(find.byKey(const Key('threadCard_thread_seed_1')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Ana Dela Cruz'), findsOneWidget);
+
+        await tester.enterText(
+          find.byKey(const Key('messageComposerField')),
+          'Sure, no problem!',
+        );
+        await tester.tap(find.byKey(const Key('sendMessageButton')));
+        await tester.pump();
+
+        expect(
+          sampleMessageThreads
+              .firstWhere((t) => t.id == 'thread_seed_1')
+              .messages
+              .last
+              .senderIsOwner,
+          isTrue,
+        );
+
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+
+        expect(find.text('Sure, no problem!'), findsOneWidget);
       },
     );
   });

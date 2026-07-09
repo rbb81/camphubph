@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:camper/data/sample_camps.dart';
+import 'package:camper/data/sample_message_threads.dart';
 import 'package:camper/data/sample_trips.dart';
 import 'package:camper/models/camp.dart';
+import 'package:camper/models/message_thread.dart';
 import 'package:camper/models/trip.dart';
 import 'package:camper/screens/camp_details_screen.dart';
 
@@ -66,15 +68,20 @@ Future<void> _pickDate(WidgetTester tester, Key fieldKey, DateTime date) async {
 
 void main() {
   late List<Trip> tripsSnapshot;
+  late List<MessageThread> threadsSnapshot;
 
   setUp(() {
     tripsSnapshot = List.of(sampleTrips);
+    threadsSnapshot = List.of(sampleMessageThreads);
   });
 
   tearDown(() {
     sampleTrips
       ..clear()
       ..addAll(tripsSnapshot);
+    sampleMessageThreads
+      ..clear()
+      ..addAll(threadsSnapshot);
   });
 
   group('CampDetailsScreen', () {
@@ -195,6 +202,43 @@ void main() {
         expect(
           find.text('Added ${_campWithReviews.name} to your trips.'),
           findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'Message Campsite reuses an existing thread for this guest and camp',
+      (tester) async {
+        await _pumpCampDetailsHost(tester, camp: _campWithReviews);
+
+        await tester.tap(find.byKey(const Key('messageCampsiteButton')));
+        await tester.pumpAndSettle();
+
+        expect(find.text(_campWithReviews.name), findsOneWidget);
+        expect(
+          find.textContaining('Is the river crossing open'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'Message Campsite starts a new empty thread when none exists yet',
+      (tester) async {
+        await _pumpCampDetailsHost(tester, camp: _campWithoutReviews);
+
+        await tester.tap(find.byKey(const Key('messageCampsiteButton')));
+        await tester.pumpAndSettle();
+
+        expect(find.text(_campWithoutReviews.name), findsOneWidget);
+        expect(find.text('No messages yet. Say hello!'), findsOneWidget);
+        expect(
+          sampleMessageThreads.any(
+            (t) =>
+                t.campId == _campWithoutReviews.id &&
+                t.guestName == 'Ana Dela Cruz',
+          ),
+          isTrue,
         );
       },
     );

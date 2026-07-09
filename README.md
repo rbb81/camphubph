@@ -104,14 +104,15 @@ Covers:
 - [`test/register_screen_test.dart`](test/register_screen_test.dart) — required-field errors, invalid email format, mismatched password/confirm password, a fully valid submit succeeding via the dummy auth fallback, account-type toggle defaults to Camper and a Camp Owner submission still succeeds, Campsite name only appears (and Full name relabels to Host name) for Camp Owner, submitting Camp Owner without a campsite name shows a validation error
 - [`test/login_screen_test.dart`](test/login_screen_test.dart) — required-field errors, invalid email format, valid submit navigating to `/home` via the dummy auth fallback, navigation to `/forgot-password` and `/register`, a camp-owner account routes to `/owner-home` instead
 - [`test/auth_service_test.dart`](test/auth_service_test.dart) — pure unit tests for the dummy-mode role round trip: sign up as camp owner/camper then sign in returns an `AuthResult` with the matching `UserRole`, an unregistered email defaults to camper, a campsite name round-trips through sign-in and populates `AuthService.currentSession`
-- [`test/camp_owner_dashboard_screen_test.dart`](test/camp_owner_dashboard_screen_test.dart) — with no signed-in session renders demo placeholder business info (distinct from camper Profile — no Followers/Following); with a signed-in session renders the real campsite/host name and email; seeded reservations render; Confirm/Decline flips a pending reservation's status and updates `sampleReservations`; Add Reservation appends a new card
+- [`test/camp_owner_dashboard_screen_test.dart`](test/camp_owner_dashboard_screen_test.dart) — with no signed-in session renders demo placeholder business info (distinct from camper Profile — no Followers/Following); with a signed-in session renders the real campsite/host name and email; seeded reservations render; Confirm/Decline flips a pending reservation's status and updates `sampleReservations`; Add Reservation appends a new card; seeded message threads render with a last-message preview; opening a thread and replying as owner updates `sampleMessageThreads` and the preview
 - [`test/add_reservation_screen_test.dart`](test/add_reservation_screen_test.dart) — required-field validation, a fully valid submit pops a `Reservation` and appends it to `sampleReservations`
 - [`test/forgot_password_screen_test.dart`](test/forgot_password_screen_test.dart) — empty/invalid email validation, valid submit succeeding via the dummy auth fallback, navigation back to `/login`
 - [`test/home_screen_test.dart`](test/home_screen_test.dart) — app bar/bottom tab bar render, mixed feed content renders, tap-through to Discover/Communities/Post Details/Camp Details/Create Post, "coming soon" for Map/search/notifications
 - [`test/discover_screen_test.dart`](test/discover_screen_test.dart) — category grid renders, tapping a category opens Camp Results
 - [`test/camp_results_screen_test.dart`](test/camp_results_screen_test.dart) — filtered results render, sort/rating filter sheet, tap-through to Camp Details, empty-filter state
-- [`test/camp_details_screen_test.dart`](test/camp_details_screen_test.dart) — identity block renders, bookmark toggle, Reviews tab (populated and empty states), writing a review updates the aggregate rating/count, Add to Trip pushes Schedule Trip and shows a confirmation
+- [`test/camp_details_screen_test.dart`](test/camp_details_screen_test.dart) — identity block renders, bookmark toggle, Reviews tab (populated and empty states), writing a review updates the aggregate rating/count, Add to Trip pushes Schedule Trip and shows a confirmation, Message Campsite reuses an existing thread or starts a new empty one
 - [`test/write_review_screen_test.dart`](test/write_review_screen_test.dart) — rating-required validation, pro/con chip add/remove, a fully valid submit
+- [`test/message_thread_screen_test.dart`](test/message_thread_screen_test.dart) — camper view shows the camp name as the title, owner view shows the guest name; empty-thread state; sending a message appends it, clears the composer, and updates `sampleMessageThreads`
 - [`test/create_post_screen_test.dart`](test/create_post_screen_test.dart) — caption validation, optional location, a valid submit
 - [`test/post_details_screen_test.dart`](test/post_details_screen_test.dart) — post/comment thread renders, like toggle, adding a comment
 - [`test/communities_screen_test.dart`](test/communities_screen_test.dart) — Your/Suggested sections render, join/request-to-join/leave, private-community badge, tap-through to Community Feed, create-community flow inserts at the top
@@ -190,6 +191,12 @@ On Windows, run that inside WSL or Git Bash, then make sure `~/.maestro/bin` (or
    `discover_smoke.yaml` taps a category and checks the filtered results. `camp_details_smoke.yaml` continues into a camp's details and its Reviews tab. `write_review_flow.yaml` opens Write a Review and checks the rating-required validation error (the star-rating buttons have no text/tooltip label, so Maestro's text-based taps can't pick a star — the happy path is covered by the widget/chromedriver tests instead). `schedule_trip_flow.yaml` opens Schedule Trip from "Add to Trip", checks the missing-dates validation error, then drives the Material date picker via its "Switch to input" toggle to schedule a real date range and confirms it.
 
    ```bash
+   maestro test .maestro/message_campsite_flow.yaml
+   ```
+
+   Opens a camp with no seeded conversation, taps "Message Campsite" to start a brand-new empty thread, sends a message, and confirms it appears in the conversation.
+
+   ```bash
    maestro test .maestro/communities_smoke.yaml
    maestro test .maestro/community_feed_smoke.yaml
    maestro test .maestro/create_community_flow.yaml
@@ -216,7 +223,7 @@ On Windows, run that inside WSL or Git Bash, then make sure `~/.maestro/bin` (or
    maestro test .maestro/camp_owner_dashboard_smoke.yaml
    ```
 
-   `camp_owner_register_flow.yaml` is `register_happy_path.yaml` with the new "Camp Owner" account-type segment selected before submitting, including the required Campsite name field. `camp_owner_dashboard_smoke.yaml` registers a Camp Owner account (with a campsite name), backs out to Landing, logs back in with the same credentials, and confirms it lands on the Camp Owner Dashboard showing that real campsite/host info (not the demo placeholder) rather than Home — self-contained since there's no pre-seeded owner account, unlike `home_smoke.yaml`'s credential-override approach.
+   `camp_owner_register_flow.yaml` is `register_happy_path.yaml` with the new "Camp Owner" account-type segment selected before submitting, including the required Campsite name field. `camp_owner_dashboard_smoke.yaml` registers a Camp Owner account (with a campsite name), backs out to Landing, logs back in with the same credentials, and confirms it lands on the Camp Owner Dashboard showing that real campsite/host info (not the demo placeholder) and the Messages section, rather than Home — self-contained since there's no pre-seeded owner account, unlike `home_smoke.yaml`'s credential-override approach.
 
    ```bash
    maestro test .maestro/camp_owner_reservations_flow.yaml
@@ -250,7 +257,7 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    chromedriver --port=4444
    ```
 
-3. In another terminal, run a flow. Every file below has been run against a real Chrome window in this environment (chromedriver 149.x) — **all 20 currently pass**:
+3. In another terminal, run a flow. Every file below has been run against a real Chrome window in this environment (chromedriver 149.x) — **all 21 currently pass**:
 
    ```bash
    flutter drive --driver=test_driver/integration_test.dart --target=integration_test/<file>.dart -d chrome
@@ -260,9 +267,10 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    | --- | --- |
    | `landing_test.dart`, `register_test.dart`, `login_test.dart`, `forgot_password_test.dart` | Boot the full app via `app.main()` (not a pumped single screen, unlike the rest of this table). `landing_test.dart` checks the brand/CTA, the "Log in" link, and the "Preview Camp Owner View (test)" button reaching the dashboard. The other three run **without** `--dart-define-from-file` on purpose — each asserts empty-form validation, then a fully valid submit succeeding via the dummy auth fallback (Supabase intentionally left unconfigured). `register_test.dart` also submits with the Camp Owner account-type segment selected (including the Campsite name field); `login_test.dart` also signs up a Camp Owner account (with a campsite name) directly via `AuthService` then logs in through the UI, confirming it routes to the Camp Owner Dashboard and renders the real campsite/host info instead of the demo placeholder. |
    | `home_test.dart` | Feed renders; search/create-post/tab-bar "coming soon" messages; like toggle; tap-through to Post Details, Camp Details, Discover, Communities. |
-   | `camp_owner_dashboard_test.dart` | Pumps `CampOwnerDashboardScreen` directly (sidesteps login-gating, same as `home_test.dart`); with no session renders the demo placeholder business info, with a session set on `AuthService` renders the real campsite/host name and email; checks seeded reservations render, Confirm/Decline flips a pending reservation's status, and Add Reservation appends a new one. |
+   | `camp_owner_dashboard_test.dart` | Pumps `CampOwnerDashboardScreen` directly (sidesteps login-gating, same as `home_test.dart`); with no session renders the demo placeholder business info, with a session set on `AuthService` renders the real campsite/host name and email; checks seeded reservations render, Confirm/Decline flips a pending reservation's status, and Add Reservation appends a new one; seeded message threads render with a last-message preview, opening a thread and replying as owner updates it and the preview. |
    | `discover_test.dart`, `camp_results_test.dart` | Category grid renders; tapping a category filters to matching camps; tapping a result opens Camp Details. |
-   | `camp_details_test.dart`, `write_review_test.dart` | Reviews tab renders; writing a review updates the aggregate rating/count live; review-form validation and pro/con chip add. |
+   | `camp_details_test.dart`, `write_review_test.dart` | Reviews tab renders; writing a review updates the aggregate rating/count live; review-form validation and pro/con chip add; Message Campsite opens a thread and a sent message appears. |
+   | `message_thread_test.dart` | Pumps `MessageThreadScreen` directly (sidesteps needing Camp Details/the dashboard, same pattern as `home_test.dart`); as camper renders the seeded conversation, sending a message appends it to the thread. |
    | `schedule_trip_test.dart`, `trip_planner_test.dart`, `trip_details_test.dart` | Missing-dates and overlapping-range conflict validation; a valid range pops a `Trip` and appends it to `sampleTrips`; seeded trips render grouped/sorted on Trip Planner; a full round trip — schedule from Camp Details, confirm the snackbar, see it on a freshly-pumped Trip Planner; canceling a trip from Trip Details removes it from the list; Trip Details' View Camp opens Camp Details for the same camp. |
    | `create_post_test.dart`, `post_details_test.dart` | Caption validation and cancel; like toggle and adding a comment updates the thread. |
    | `profile_test.dart`, `edit_profile_test.dart` | Identity block/tabs render, tab switching, Edit Profile and Trip Planner navigation; form pre-populates and validates. |

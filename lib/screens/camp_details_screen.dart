@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../data/sample_message_threads.dart';
 import '../data/sample_profile.dart';
 import '../data/sample_reviews.dart';
 import '../models/camp.dart';
+import '../models/message_thread.dart';
 import '../models/review.dart';
 import '../models/trip.dart';
 import '../theme/app_theme.dart';
+import 'message_thread_screen.dart';
 import 'schedule_trip_screen.dart';
 import 'write_review_screen.dart';
 
@@ -82,6 +85,33 @@ class _CampDetailsScreenState extends State<CampDetailsScreen>
     if (trip == null || !mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Added ${_camp.name} to your trips.')),
+    );
+  }
+
+  Future<void> _messageCampsite() async {
+    final guestName = sampleProfile.name;
+    final thread = sampleMessageThreads.firstWhere(
+      (t) => t.campId == _camp.id && t.guestName == guestName,
+      orElse: () {
+        final created = MessageThread(
+          id: 'thread_${DateTime.now().microsecondsSinceEpoch}',
+          campId: _camp.id,
+          campName: _camp.name,
+          guestName: guestName,
+          messages: const [],
+        );
+        sampleMessageThreads.add(created);
+        return created;
+      },
+    );
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MessageThreadScreen(
+          thread: thread,
+          viewerIsOwner: false,
+          viewerName: guestName,
+        ),
+      ),
     );
   }
 
@@ -262,6 +292,16 @@ class _CampDetailsScreenState extends State<CampDetailsScreen>
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  key: const Key('messageCampsiteButton'),
+                  onPressed: _messageCampsite,
+                  icon: const Icon(Icons.chat_bubble_outline),
+                  label: const Text('Message Campsite'),
+                ),
               ),
             ],
           ),

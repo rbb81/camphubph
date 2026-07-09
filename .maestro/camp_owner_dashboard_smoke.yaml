@@ -35,3 +35,4 @@ appId: com.camphubph.camper
 - assertVisible: "Daraitan Basecamp"
 - assertVisible: "Hosted by Owen Dashboard"
 - assertVisible: "Reservations"
+- assertVisible: "Messages"

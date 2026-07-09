@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
+import 'package:camper/data/sample_message_threads.dart';
 import 'package:camper/data/sample_reservations.dart';
 import 'package:camper/models/auth_result.dart';
+import 'package:camper/models/message_thread.dart';
 import 'package:camper/models/reservation.dart';
 import 'package:camper/models/user_role.dart';
 import 'package:camper/screens/camp_owner_dashboard_screen.dart';
@@ -15,6 +17,16 @@ import 'package:camper/services/auth_service.dart';
 // also gets its own real-browser chromedriver smoke test, matching the
 // pattern in integration_test/home_test.dart.
 Future<void> pumpDashboard(WidgetTester tester) async {
+  // The dashboard's ListView virtualizes off-screen content — with
+  // Reservations + Messages both seeded, the default chromedriver browser
+  // viewport isn't tall enough to build the Messages section without
+  // scrolling. Match the tall viewport used in
+  // test/camp_owner_dashboard_screen_test.dart.
+  tester.view.physicalSize = const Size(400, 1400);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
   await tester.pumpWidget(
     const MaterialApp(home: CampOwnerDashboardScreen()),
   );
@@ -40,10 +52,12 @@ void main() {
 
   group('Camp Owner Dashboard (real browser)', () {
     late List<Reservation> reservationsSnapshot;
+    late List<MessageThread> threadsSnapshot;
     late AuthResult? sessionSnapshot;
 
     setUp(() {
       reservationsSnapshot = List.of(sampleReservations);
+      threadsSnapshot = List.of(sampleMessageThreads);
       sessionSnapshot = AuthService.instance.currentSession;
     });
 
@@ -51,6 +65,9 @@ void main() {
       sampleReservations
         ..clear()
         ..addAll(reservationsSnapshot);
+      sampleMessageThreads
+        ..clear()
+        ..addAll(threadsSnapshot);
       AuthService.instance.currentSession = sessionSnapshot;
     });
 
@@ -156,5 +173,48 @@ void main() {
         isTrue,
       );
     });
+
+    testWidgets('renders seeded message threads with guest and preview', (
+      tester,
+    ) async {
+      await pumpDashboard(tester);
+
+      expect(find.text('Ana Dela Cruz'), findsOneWidget);
+      expect(
+        find.textContaining("It's open and calm this week"),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+      'opening a thread and replying as owner updates it and the preview',
+      (tester) async {
+        await pumpDashboard(tester);
+
+        await tester.tap(find.byKey(const Key('threadCard_thread_seed_1')));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.byKey(const Key('messageComposerField')),
+          'Glad it worked out!',
+        );
+        await tester.tap(find.byKey(const Key('sendMessageButton')));
+        await tester.pumpAndSettle();
+
+        expect(
+          sampleMessageThreads
+              .firstWhere((t) => t.id == 'thread_seed_1')
+              .messages
+              .last
+              .senderIsOwner,
+          isTrue,
+        );
+
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+
+        expect(find.text('Glad it worked out!'), findsOneWidget);
+      },
+    );
   });
 }
