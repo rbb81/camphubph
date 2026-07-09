@@ -146,13 +146,14 @@ Legend: **Regions** (top to bottom or in layout order) → **Components** → **
 - **Components:** trip card (destination thumbnail, name, dates, status badge, participant avatars).
 - **States:** empty ("plan your first trip"), populated, filtered by status tab.
 - **Primary actions:** create a trip, tap through to Trip Detail.
-- **Implemented (Phase 3, 2026-07-09):** `lib/screens/schedule_trip_screen.dart` (check-in/check-out date pickers, overlap conflict-check against `sampleTrips`) and `lib/screens/trip_planner_screen.dart` (Upcoming/Past list, computed from `endDate` vs. today) — reached from Camp Details' "Add to Trip" button and a new Profile header action. Not yet built: checklist, invite-friends, manual status tracking (status here is a computed Upcoming/Past grouping, not a stored field), and any auto-linking to the separate "Completed Trips" Profile tab.
+- **Implemented (Phase 3, 2026-07-09):** `lib/screens/schedule_trip_screen.dart` (check-in/check-out date pickers, overlap conflict-check against `sampleTrips`) and `lib/screens/trip_planner_screen.dart` (Upcoming/Past list, computed from `endDate` vs. today, tapping a card opens Trip Detail) — reached from Camp Details' "Add to Trip" button and a new Profile header action. Not yet built: checklist, invite-friends, manual status tracking (status here is a computed Upcoming/Past grouping, not a stored field), and any auto-linking to the separate "Completed Trips" Profile tab.
 
 ### Trip Detail (sub-screen)
 - **Regions:** header (trip name, status), destination(s) section, dates section, checklist section, (future) invited friends section.
 - **Components:** destination card(s) (linking to Camp Details), date range picker, checklist items (add/check off), status stepper (Planning → Confirmed → Completed).
 - **States:** editable (owner, upcoming trip), read-only (completed trip), shared/invited view (future phase).
 - **Primary actions:** add/remove destination, set dates, add/check checklist items, change status, (future) invite friends.
+- **Implemented (Phase 3, 2026-07-09):** `lib/screens/trip_details_screen.dart` — a single, simpler read-only-plus-cancel view (camp name/location, check-in/check-out dates, length of stay, "View Camp" linking to Camp Details, "Cancel Trip" removing it from `sampleTrips`). Not yet built: editing dates in place (canceling and re-scheduling is the only path today), destination cards for multi-camp trips, checklist, status stepper/change-status action, and invited-friends.
 
 ## Completed Trips
 - **Regions:** header, list of past trips.

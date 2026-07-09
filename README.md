@@ -115,7 +115,8 @@ Covers:
 - [`test/community_feed_screen_test.dart`](test/community_feed_screen_test.dart) — pinned posts, Rules/Members tabs, like toggle, compose (gated on membership), request-to-join → approval flow
 - [`test/create_community_screen_test.dart`](test/create_community_screen_test.dart) — name/description validation, Public/Private toggle, cancel pops null
 - [`test/schedule_trip_screen_test.dart`](test/schedule_trip_screen_test.dart) — missing-dates validation, an overlapping date range shows a named conflict error, a valid non-conflicting range pops a `Trip` and appends it to `sampleTrips`
-- [`test/trip_planner_screen_test.dart`](test/trip_planner_screen_test.dart) — seeded trips grouped into Upcoming/Past and sorted by date, tap-through "coming soon", empty state
+- [`test/trip_planner_screen_test.dart`](test/trip_planner_screen_test.dart) — seeded trips grouped into Upcoming/Past and sorted by date, tap-through to Trip Details, canceling a trip removes it and shows a confirmation snackbar, empty state
+- [`test/trip_details_screen_test.dart`](test/trip_details_screen_test.dart) — camp/dates/length-of-stay render, View Camp opens Camp Details for the same camp, Cancel Trip removes it from `sampleTrips` and pops `true`
 - [`test/trip_test.dart`](test/trip_test.dart) — pure unit tests for `Trip.rangesOverlap`/`Trip.findConflict`'s date-range overlap logic
 - [`test/profile_screen_test.dart`](test/profile_screen_test.dart) — identity block and tab labels render, settings/follower-stat "coming soon" messages, switching tabs shows matching sample content, Edit Profile and Trip Planner navigation
 - [`test/edit_profile_screen_test.dart`](test/edit_profile_screen_test.dart) — form pre-populates from the passed profile, name validation, style-chip toggling, avatar/cover picker buttons don't crash, Save pops with the edited profile
@@ -202,9 +203,10 @@ On Windows, run that inside WSL or Git Bash, then make sure `~/.maestro/bin` (or
 
    ```bash
    maestro test .maestro/trip_planner_smoke.yaml
+   maestro test .maestro/trip_details_flow.yaml
    ```
 
-   Opens Trip Planner from Profile and checks the seeded trips render under Upcoming/Past.
+   `trip_planner_smoke.yaml` opens Trip Planner from Profile, checks the seeded trips render under Upcoming/Past, then opens one and checks its details render. `trip_details_flow.yaml` continues further — cancels that trip and confirms it's removed from the list.
 
 3. To run every flow in the folder at once:
 
@@ -232,7 +234,7 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    chromedriver --port=4444
    ```
 
-3. In another terminal, run a flow. Every file below has been run against a real Chrome window in this environment (chromedriver 149.x) — **all 18 currently pass**:
+3. In another terminal, run a flow. Every file below has been run against a real Chrome window in this environment (chromedriver 149.x) — **all 19 currently pass**:
 
    ```bash
    flutter drive --driver=test_driver/integration_test.dart --target=integration_test/<file>.dart -d chrome
@@ -244,7 +246,7 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    | `home_test.dart` | Feed renders; search/create-post/tab-bar "coming soon" messages; like toggle; tap-through to Post Details, Camp Details, Discover, Communities. |
    | `discover_test.dart`, `camp_results_test.dart` | Category grid renders; tapping a category filters to matching camps; tapping a result opens Camp Details. |
    | `camp_details_test.dart`, `write_review_test.dart` | Reviews tab renders; writing a review updates the aggregate rating/count live; review-form validation and pro/con chip add. |
-   | `schedule_trip_test.dart`, `trip_planner_test.dart` | Missing-dates and overlapping-range conflict validation; a valid range pops a `Trip` and appends it to `sampleTrips`; seeded trips render grouped/sorted on Trip Planner; a full round trip — schedule from Camp Details, confirm the snackbar, see it on a freshly-pumped Trip Planner. |
+   | `schedule_trip_test.dart`, `trip_planner_test.dart`, `trip_details_test.dart` | Missing-dates and overlapping-range conflict validation; a valid range pops a `Trip` and appends it to `sampleTrips`; seeded trips render grouped/sorted on Trip Planner; a full round trip — schedule from Camp Details, confirm the snackbar, see it on a freshly-pumped Trip Planner; canceling a trip from Trip Details removes it from the list; Trip Details' View Camp opens Camp Details for the same camp. |
    | `create_post_test.dart`, `post_details_test.dart` | Caption validation and cancel; like toggle and adding a comment updates the thread. |
    | `profile_test.dart`, `edit_profile_test.dart` | Identity block/tabs render, tab switching, Edit Profile and Trip Planner navigation; form pre-populates and validates. |
    | `communities_test.dart`, `community_feed_test.dart`, `create_community_test.dart` | Your/Suggested sections, join/leave, tap-through to Community Feed, create-community flow; pinned posts, Rules/Members tabs, like toggle, compose; name/description validation and Public/Private toggle. |
@@ -286,7 +288,7 @@ lib/config/env.dart         reads SUPABASE_URL / SUPABASE_ANON_KEY
 lib/services/auth_service.dart  Supabase Auth, with a dummy fallback when unconfigured
 lib/theme/app_theme.dart    light/dark theme (nature-inspired palette)
 lib/widgets/auth_layout.dart shared layout for register/login/forgot-password
-lib/screens/                landing, auth, home, discover/camp results/camp details/write review, schedule trip/trip planner, create post/post details, communities/community feed/create community, profile/edit profile screens
+lib/screens/                landing, auth, home, discover/camp results/camp details/write review, schedule trip/trip planner/trip details, create post/post details, communities/community feed/create community, profile/edit profile screens
 lib/models/                 content types (HomeFeedItem, Camp, Review, Comment, Profile, Trip, Community, CommunityMember, CommunityPost)
 lib/data/                   placeholder sample content for every screen above (no matching Supabase schema yet)
 test/                       unit/widget tests

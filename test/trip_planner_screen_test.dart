@@ -71,16 +71,35 @@ void main() {
       expect(sooner.dy, lessThan(later.dy));
     });
 
-    testWidgets('tapping a trip card shows a coming-soon snackbar', (
-      tester,
-    ) async {
+    testWidgets('tapping a trip card opens its Trip Details', (tester) async {
       await pumpTripPlannerScreen(tester);
 
       await tester.tap(find.byKey(const Key('tripCard_trip_seed_upcoming')));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
-      expect(find.text('Trip details is coming soon.'), findsOneWidget);
+      expect(find.text('Trip Details'), findsOneWidget);
+      expect(find.text('Mt. Daraitan campsite'), findsOneWidget);
     });
+
+    testWidgets(
+      'canceling a trip from its details removes it and shows a snackbar',
+      (tester) async {
+        await pumpTripPlannerScreen(tester);
+
+        await tester.tap(find.byKey(const Key('tripCard_trip_seed_upcoming')));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const Key('cancelTripDetailsButton')));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Canceled your trip to Mt. Daraitan campsite.'),
+          findsOneWidget,
+        );
+        expect(find.text('Mt. Daraitan campsite'), findsNothing);
+        expect(sampleTrips.any((t) => t.id == 'trip_seed_upcoming'), isFalse);
+      },
+    );
 
     testWidgets('shows an empty state with no scheduled trips', (
       tester,

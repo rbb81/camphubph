@@ -21,3 +21,7 @@ env:
 - assertVisible: "Mt. Daraitan campsite"
 - assertVisible: "Past"
 - assertVisible: "Taal Lake shoreline"
+- tapOn: "Mt. Daraitan campsite"
+- assertVisible: "Trip Details"
+- assertVisible: "View Camp"
+- assertVisible: "Cancel Trip"

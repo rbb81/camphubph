@@ -94,5 +94,26 @@ void main() {
         expect(find.text(_camp.name), findsNWidgets(2));
       },
     );
+
+    testWidgets(
+      'canceling a trip from its details removes it from the list',
+      (tester) async {
+        await pumpTripPlannerScreen(tester);
+
+        await tester.tap(find.byKey(const Key('tripCard_trip_seed_upcoming')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Trip Details'), findsOneWidget);
+
+        await tester.tap(find.byKey(const Key('cancelTripDetailsButton')));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Canceled your trip to Mt. Daraitan campsite.'),
+          findsOneWidget,
+        );
+        expect(sampleTrips.any((t) => t.id == 'trip_seed_upcoming'), isFalse);
+      },
+    );
   });
 }

@@ -4,6 +4,7 @@ import '../data/sample_trips.dart';
 import '../models/trip.dart';
 import '../theme/app_theme.dart';
 import 'discover_screen.dart';
+import 'trip_details_screen.dart';
 
 class TripPlannerScreen extends StatefulWidget {
   const TripPlannerScreen({super.key});
@@ -21,18 +22,23 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
     _trips = List.of(sampleTrips);
   }
 
-  void _comingSoon(String feature) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('$feature is coming soon.')));
-  }
-
   Future<void> _planNewTrip() async {
     await Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const DiscoverScreen()));
     if (!mounted) return;
     setState(() => _trips = List.of(sampleTrips));
+  }
+
+  Future<void> _openTripDetails(Trip trip) async {
+    final canceled = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => TripDetailsScreen(trip: trip)),
+    );
+    if (canceled != true || !mounted) return;
+    setState(() => _trips = List.of(sampleTrips));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Canceled your trip to ${trip.campName}.')),
+    );
   }
 
   @override
@@ -63,7 +69,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                         for (final trip in upcoming) ...[
                           _TripCard(
                             trip: trip,
-                            onTap: () => _comingSoon('Trip details'),
+                            onTap: () => _openTripDetails(trip),
                           ),
                           const SizedBox(height: 12),
                         ],
@@ -78,7 +84,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                         for (final trip in past) ...[
                           _TripCard(
                             trip: trip,
-                            onTap: () => _comingSoon('Trip details'),
+                            onTap: () => _openTripDetails(trip),
                           ),
                           const SizedBox(height: 12),
                         ],

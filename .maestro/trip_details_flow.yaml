@@ -1,0 +1,28 @@
+# Trip Details is reached via Trip Planner -> a trip card. See
+# home_smoke.yaml for the login-credential override instructions.
+#
+# Uses the seeded "Mt. Daraitan campsite" upcoming trip. Cancels it and
+# confirms it's gone from the list — trip_planner_smoke.yaml covers the
+# render-only path (opening Trip Details without canceling).
+appId: com.camphubph.camper
+env:
+  MAESTRO_TEST_EMAIL: dummy@example.com
+  MAESTRO_TEST_PASSWORD: dummy-password
+---
+- launchApp
+- tapOn: "Log in"
+- tapOn: "name@example.com"
+- inputText: ${MAESTRO_TEST_EMAIL}
+- tapOn: "Your password"
+- inputText: ${MAESTRO_TEST_PASSWORD}
+- tapOn:
+    text: "Log in"
+    index: 1
+- tapOn: "Profile"
+- tapOn: "Trip Planner"
+- tapOn: "Mt. Daraitan campsite"
+- assertVisible: "Check-in"
+- assertVisible: "Check-out"
+- tapOn: "Cancel Trip"
+- assertVisible: "Canceled your trip to Mt. Daraitan campsite."
+- assertNotVisible: "Mt. Daraitan campsite"
