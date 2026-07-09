@@ -88,5 +88,23 @@ void main() {
       expect(find.text('Edit Profile'), findsOneWidget);
       expect(find.byKey(const Key('nameField')), findsOneWidget);
     });
+
+    testWidgets('tapping Trip Planner navigates to /trips', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          initialRoute: '/profile',
+          routes: {
+            '/profile': (context) => const ProfileScreen(),
+            '/trips': (context) =>
+                const Scaffold(body: Text('Trip Planner Screen')),
+          },
+        ),
+      );
+
+      await tester.tap(find.byKey(const Key('tripPlannerButton')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Trip Planner Screen'), findsOneWidget);
+    });
   });
 }

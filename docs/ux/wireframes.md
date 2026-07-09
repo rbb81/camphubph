@@ -146,6 +146,7 @@ Legend: **Regions** (top to bottom or in layout order) → **Components** → **
 - **Components:** trip card (destination thumbnail, name, dates, status badge, participant avatars).
 - **States:** empty ("plan your first trip"), populated, filtered by status tab.
 - **Primary actions:** create a trip, tap through to Trip Detail.
+- **Implemented (Phase 3, 2026-07-09):** `lib/screens/schedule_trip_screen.dart` (check-in/check-out date pickers, overlap conflict-check against `sampleTrips`) and `lib/screens/trip_planner_screen.dart` (Upcoming/Past list, computed from `endDate` vs. today) — reached from Camp Details' "Add to Trip" button and a new Profile header action. Not yet built: checklist, invite-friends, manual status tracking (status here is a computed Upcoming/Past grouping, not a stored field), and any auto-linking to the separate "Completed Trips" Profile tab.
 
 ### Trip Detail (sub-screen)
 - **Regions:** header (trip name, status), destination(s) section, dates section, checklist section, (future) invited friends section.

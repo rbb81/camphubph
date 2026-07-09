@@ -231,11 +231,27 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ],
               ),
               const SizedBox(height: 16),
-              OutlinedButton(
-                key: const Key('editProfileButton'),
-                onPressed: _openEditProfile,
-                style: OutlinedButton.styleFrom(foregroundColor: accent),
-                child: const Text('Edit Profile'),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      key: const Key('editProfileButton'),
+                      onPressed: _openEditProfile,
+                      style: OutlinedButton.styleFrom(foregroundColor: accent),
+                      child: const Text('Edit Profile'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      key: const Key('tripPlannerButton'),
+                      onPressed: () =>
+                          Navigator.of(context).pushNamed('/trips'),
+                      icon: const Icon(Icons.card_travel),
+                      label: const Text('Trip Planner'),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
             ],

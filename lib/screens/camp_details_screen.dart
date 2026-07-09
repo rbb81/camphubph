@@ -4,7 +4,9 @@ import '../data/sample_profile.dart';
 import '../data/sample_reviews.dart';
 import '../models/camp.dart';
 import '../models/review.dart';
+import '../models/trip.dart';
 import '../theme/app_theme.dart';
+import 'schedule_trip_screen.dart';
 import 'write_review_screen.dart';
 
 class CampDetailsScreen extends StatefulWidget {
@@ -71,6 +73,16 @@ class _CampDetailsScreenState extends State<CampDetailsScreen>
           ((_camp.rating * _camp.reviewCount) + review.rating) / newCount;
       _camp = _camp.copyWith(rating: newRating, reviewCount: newCount);
     });
+  }
+
+  Future<void> _addToTrip() async {
+    final trip = await Navigator.of(context).push<Trip>(
+      MaterialPageRoute(builder: (_) => ScheduleTripScreen(camp: _camp)),
+    );
+    if (trip == null || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Added ${_camp.name} to your trips.')),
+    );
   }
 
   @override
@@ -244,7 +256,7 @@ class _CampDetailsScreenState extends State<CampDetailsScreen>
                   Expanded(
                     child: OutlinedButton.icon(
                       key: const Key('addToTripButton'),
-                      onPressed: () => _comingSoon('Add to trip'),
+                      onPressed: _addToTrip,
                       icon: const Icon(Icons.add_road),
                       label: const Text('Add to Trip'),
                     ),

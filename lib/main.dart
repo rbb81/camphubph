@@ -9,6 +9,7 @@ import 'screens/landing_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/register_screen.dart';
+import 'screens/trip_planner_screen.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
@@ -45,6 +46,7 @@ class CamperApp extends StatelessWidget {
         '/discover': (context) => const DiscoverScreen(),
         '/communities': (context) => const CommunitiesScreen(),
         '/profile': (context) => const ProfileScreen(),
+        '/trips': (context) => const TripPlannerScreen(),
       },
     );
   }

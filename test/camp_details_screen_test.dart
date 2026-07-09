@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:camper/data/sample_camps.dart';
+import 'package:camper/data/sample_trips.dart';
 import 'package:camper/models/camp.dart';
+import 'package:camper/models/trip.dart';
 import 'package:camper/screens/camp_details_screen.dart';
 
 final _campWithReviews = sampleCamps.firstWhere((c) => c.id == 'daraitan');
@@ -48,7 +50,33 @@ Future<_ResultCapture> _pumpCampDetailsHost(
   return capture;
 }
 
+String _fmt(DateTime d) =>
+    '${d.month.toString().padLeft(2, '0')}/${d.day.toString().padLeft(2, '0')}/${d.year}';
+
+Future<void> _pickDate(WidgetTester tester, Key fieldKey, DateTime date) async {
+  await tester.tap(find.byKey(fieldKey));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byTooltip('Switch to input'));
+  await tester.pumpAndSettle();
+  await tester.enterText(find.byType(TextField), _fmt(date));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('OK'));
+  await tester.pumpAndSettle();
+}
+
 void main() {
+  late List<Trip> tripsSnapshot;
+
+  setUp(() {
+    tripsSnapshot = List.of(sampleTrips);
+  });
+
+  tearDown(() {
+    sampleTrips
+      ..clear()
+      ..addAll(tripsSnapshot);
+  });
+
   group('CampDetailsScreen', () {
     testWidgets('renders the identity block with camp data', (tester) async {
       await _pumpCampDetailsHost(tester, camp: _campWithReviews);
@@ -135,6 +163,39 @@ void main() {
         expect(capture.value, isNotNull);
         expect(capture.value!.reviewCount, 1);
         expect(capture.value!.rating, 5.0);
+      },
+    );
+
+    testWidgets(
+      'Add to Trip schedules a trip and shows a confirmation snackbar',
+      (tester) async {
+        await _pumpCampDetailsHost(tester, camp: _campWithReviews);
+
+        await tester.tap(find.byKey(const Key('addToTripButton')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Schedule Trip'), findsOneWidget);
+
+        final today = DateTime.now();
+        final base = DateTime(today.year, today.month, today.day);
+        await _pickDate(
+          tester,
+          const Key('checkInField'),
+          base.add(const Duration(days: 200)),
+        );
+        await _pickDate(
+          tester,
+          const Key('checkOutField'),
+          base.add(const Duration(days: 202)),
+        );
+
+        await tester.tap(find.byKey(const Key('submitTripButton')));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Added ${_campWithReviews.name} to your trips.'),
+          findsOneWidget,
+        );
       },
     );
   });
