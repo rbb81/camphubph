@@ -1,0 +1,33 @@
+# The Camp Owner Dashboard is only reachable by logging in with an account
+# registered with the Camp Owner account type. There's no seeded backend
+# account for this yet, so this flow registers one first (works under the
+# dummy auth fallback, i.e. run WITHOUT --dart-define-from-file), then backs
+# out to the Landing screen and logs back in with the same credentials to
+# exercise the role-based routing in login_screen.dart.
+appId: com.camphubph.camper
+---
+- launchApp
+- tapOn: "Create your account"
+- tapOn: "Jasmine Reyes"
+- inputText: "Owen Dashboard"
+- tapOn: "Camp Owner"
+- tapOn: "name@example.com"
+- inputText: "owen-dashboard-maestro@example.com"
+- tapOn: "At least 8 characters"
+- inputText: "password123"
+- tapOn: "Re-enter your password"
+- inputText: "password123"
+- tapOn: "I agree to the terms of service and privacy policy."
+- tapOn: "Create account"
+- assertVisible: "Check your email"
+- back
+- tapOn: "Log in"
+- tapOn: "name@example.com"
+- inputText: "owen-dashboard-maestro@example.com"
+- tapOn: "Your password"
+- inputText: "password123"
+- tapOn:
+    text: "Log in"
+    index: 1
+- assertVisible: "Camp Owner Dashboard"
+- assertVisible: "Welcome, camp owner!"

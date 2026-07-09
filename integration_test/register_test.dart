@@ -67,5 +67,42 @@ void main() {
       // test/register_screen_test.dart but driven through a real browser.
       expect(find.text('Check your email'), findsOneWidget);
     });
+
+    testWidgets(
+        'submits a valid form with the Camp Owner account type selected '
+        '(run this file without --dart-define-from-file)', (tester) async {
+      await app.main();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Create your account'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Camp Owner'));
+      await tester.tap(find.text('Camp Owner'));
+      await tester.pump();
+
+      await tester.enterText(
+        find.byKey(const Key('fullNameField')),
+        'Owen Reyes',
+      );
+      await tester.enterText(
+        find.byKey(const Key('emailField')),
+        'owen+integration@example.com',
+      );
+      await tester.enterText(
+        find.byKey(const Key('passwordField')),
+        'password123',
+      );
+      await tester.enterText(
+        find.byKey(const Key('confirmPasswordField')),
+        'password123',
+      );
+      await tester.tap(find.byKey(const Key('termsCheckbox')));
+      await tester.pump();
+
+      await tapCreateAccount(tester);
+
+      expect(find.text('Check your email'), findsOneWidget);
+    });
   });
 }

@@ -1,0 +1,20 @@
+# Same as register_happy_path.yaml but selects the Camp Owner account type
+# segment before submitting, exercising the new accountTypeField toggle.
+# Works either way: dummy auth fallback (no --dart-define-from-file) or a
+# real Supabase signUp call.
+appId: com.camphubph.camper
+---
+- launchApp
+- tapOn: "Create your account"
+- tapOn: "Jasmine Reyes"
+- inputText: "Owen Reyes"
+- tapOn: "Camp Owner"
+- tapOn: "name@example.com"
+- inputText: "owen-maestro@example.com"
+- tapOn: "At least 8 characters"
+- inputText: "password123"
+- tapOn: "Re-enter your password"
+- inputText: "password123"
+- tapOn: "I agree to the terms of service and privacy policy."
+- tapOn: "Create account"
+- assertVisible: "Check your email"

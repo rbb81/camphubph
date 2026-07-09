@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'package:camper/main.dart' as app;
+import 'package:camper/models/user_role.dart';
+import 'package:camper/services/auth_service.dart';
 
 Future<void> tapLogInButton(WidgetTester tester) async {
   await tester.ensureVisible(find.text('Log in').last);
@@ -49,6 +51,37 @@ void main() {
       await tapLogInButton(tester);
 
       expect(find.text('Recommended near you'), findsWidgets);
+    });
+
+    testWidgets(
+        'a camp owner account routes to the owner dashboard, not home '
+        '(run this file without --dart-define-from-file)', (tester) async {
+      final email =
+          'owen+integration-${DateTime.now().microsecondsSinceEpoch}'
+          '@example.com';
+      await AuthService.instance.signUp(
+        email: email,
+        password: 'password123',
+        fullName: 'Owen Reyes',
+        role: UserRole.campOwner,
+      );
+
+      await app.main();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Log in').first);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byKey(const Key('emailField')), email);
+      await tester.enterText(
+        find.byKey(const Key('passwordField')),
+        'password123',
+      );
+
+      await tapLogInButton(tester);
+
+      expect(find.text('Camp Owner Dashboard'), findsOneWidget);
+      expect(find.text('Recommended near you'), findsNothing);
     });
   });
 }

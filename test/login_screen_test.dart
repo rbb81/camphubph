@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:camper/models/user_role.dart';
 import 'package:camper/screens/login_screen.dart';
+import 'package:camper/services/auth_service.dart';
 
 Future<void> pumpLoginScreen(WidgetTester tester) async {
   tester.view.physicalSize = const Size(400, 1000);
@@ -17,6 +19,8 @@ Future<void> pumpLoginScreen(WidgetTester tester) async {
         '/forgot-password': (context) =>
             const Scaffold(body: Text('Forgot password page')),
         '/home': (context) => const Scaffold(body: Text('Home page')),
+        '/owner-home': (context) =>
+            const Scaffold(body: Text('Owner home page')),
       },
     ),
   );
@@ -101,5 +105,38 @@ void main() {
 
       expect(find.text('Register page'), findsOneWidget);
     });
+
+    testWidgets(
+      'a camp owner account routes to the owner dashboard, not home',
+      (WidgetTester tester) async {
+        final email =
+            'owner-login-${DateTime.now().microsecondsSinceEpoch}@example.com';
+        // AuthService's dummy fallback uses a real Future.delayed, which
+        // never resolves under testWidgets' fake-async clock unless it's
+        // driven by tester.pump(). tester.runAsync steps outside the
+        // fake-async zone so this real delay actually completes.
+        await tester.runAsync(
+          () => AuthService.instance.signUp(
+            email: email,
+            password: 'password123',
+            fullName: 'Owen Reyes',
+            role: UserRole.campOwner,
+          ),
+        );
+
+        await pumpLoginScreen(tester);
+
+        await tester.enterText(find.byKey(const Key('emailField')), email);
+        await tester.enterText(
+          find.byKey(const Key('passwordField')),
+          'password123',
+        );
+
+        await tapLogIn(tester);
+
+        expect(find.text('Owner home page'), findsOneWidget);
+        expect(find.text('Home page'), findsNothing);
+      },
+    );
   });
 }

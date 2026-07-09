@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/user_role.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/auth_layout.dart';
@@ -36,12 +37,15 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await AuthService.instance.signIn(
+      final role = await AuthService.instance.signIn(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
       if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          role == UserRole.campOwner ? '/owner-home' : '/home',
+          (route) => false,
+        );
       }
     } on AuthException catch (e) {
       setState(() => _formError = e.message);

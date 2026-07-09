@@ -101,8 +101,10 @@ flutter test test/register_screen_test.dart
 ```
 
 Covers:
-- [`test/register_screen_test.dart`](test/register_screen_test.dart) — required-field errors, invalid email format, mismatched password/confirm password, and a fully valid submit succeeding via the dummy auth fallback
-- [`test/login_screen_test.dart`](test/login_screen_test.dart) — required-field errors, invalid email format, valid submit navigating to `/home` via the dummy auth fallback, navigation to `/forgot-password` and `/register`
+- [`test/register_screen_test.dart`](test/register_screen_test.dart) — required-field errors, invalid email format, mismatched password/confirm password, a fully valid submit succeeding via the dummy auth fallback, account-type toggle defaults to Camper and a Camp Owner submission still succeeds
+- [`test/login_screen_test.dart`](test/login_screen_test.dart) — required-field errors, invalid email format, valid submit navigating to `/home` via the dummy auth fallback, navigation to `/forgot-password` and `/register`, a camp-owner account routes to `/owner-home` instead
+- [`test/auth_service_test.dart`](test/auth_service_test.dart) — pure unit tests for the dummy-mode role round trip: sign up as camp owner/camper then sign in returns the matching `UserRole`, an unregistered email defaults to camper
+- [`test/camp_owner_dashboard_screen_test.dart`](test/camp_owner_dashboard_screen_test.dart) — renders the welcome heading and icon
 - [`test/forgot_password_screen_test.dart`](test/forgot_password_screen_test.dart) — empty/invalid email validation, valid submit succeeding via the dummy auth fallback, navigation back to `/login`
 - [`test/home_screen_test.dart`](test/home_screen_test.dart) — app bar/bottom tab bar render, mixed feed content renders, tap-through to Discover/Communities/Post Details/Camp Details/Create Post, "coming soon" for Map/search/notifications
 - [`test/discover_screen_test.dart`](test/discover_screen_test.dart) — category grid renders, tapping a category opens Camp Results
@@ -208,6 +210,13 @@ On Windows, run that inside WSL or Git Bash, then make sure `~/.maestro/bin` (or
 
    `trip_planner_smoke.yaml` opens Trip Planner from Profile, checks the seeded trips render under Upcoming/Past, then opens one and checks its details render. `trip_details_flow.yaml` continues further — cancels that trip and confirms it's removed from the list.
 
+   ```bash
+   maestro test .maestro/camp_owner_register_flow.yaml
+   maestro test .maestro/camp_owner_dashboard_smoke.yaml
+   ```
+
+   `camp_owner_register_flow.yaml` is `register_happy_path.yaml` with the new "Camp Owner" account-type segment selected before submitting. `camp_owner_dashboard_smoke.yaml` registers a Camp Owner account, backs out to Landing, logs back in with the same credentials, and confirms it lands on the Camp Owner Dashboard rather than Home — self-contained since there's no pre-seeded owner account, unlike `home_smoke.yaml`'s credential-override approach.
+
 3. To run every flow in the folder at once:
 
    ```bash
@@ -234,7 +243,7 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    chromedriver --port=4444
    ```
 
-3. In another terminal, run a flow. Every file below has been run against a real Chrome window in this environment (chromedriver 149.x) — **all 19 currently pass**:
+3. In another terminal, run a flow. Every file below has been run against a real Chrome window in this environment (chromedriver 149.x) — **all 20 currently pass**:
 
    ```bash
    flutter drive --driver=test_driver/integration_test.dart --target=integration_test/<file>.dart -d chrome
@@ -242,8 +251,9 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
 
    | File | Covers |
    | --- | --- |
-   | `landing_test.dart`, `register_test.dart`, `login_test.dart`, `forgot_password_test.dart` | Boot the full app via `app.main()` (not a pumped single screen, unlike the rest of this table). `landing_test.dart` checks the brand/CTA and the "Log in" link. The other three run **without** `--dart-define-from-file` on purpose — each asserts empty-form validation, then a fully valid submit succeeding via the dummy auth fallback (Supabase intentionally left unconfigured). |
+   | `landing_test.dart`, `register_test.dart`, `login_test.dart`, `forgot_password_test.dart` | Boot the full app via `app.main()` (not a pumped single screen, unlike the rest of this table). `landing_test.dart` checks the brand/CTA and the "Log in" link. The other three run **without** `--dart-define-from-file` on purpose — each asserts empty-form validation, then a fully valid submit succeeding via the dummy auth fallback (Supabase intentionally left unconfigured). `register_test.dart` also submits with the Camp Owner account-type segment selected; `login_test.dart` also signs up a Camp Owner account directly via `AuthService` then logs in through the UI, confirming it routes to the Camp Owner Dashboard instead of Home. |
    | `home_test.dart` | Feed renders; search/create-post/tab-bar "coming soon" messages; like toggle; tap-through to Post Details, Camp Details, Discover, Communities. |
+   | `camp_owner_dashboard_test.dart` | Pumps `CampOwnerDashboardScreen` directly (sidesteps login-gating, same as `home_test.dart`) and checks the welcome heading renders. |
    | `discover_test.dart`, `camp_results_test.dart` | Category grid renders; tapping a category filters to matching camps; tapping a result opens Camp Details. |
    | `camp_details_test.dart`, `write_review_test.dart` | Reviews tab renders; writing a review updates the aggregate rating/count live; review-form validation and pro/con chip add. |
    | `schedule_trip_test.dart`, `trip_planner_test.dart`, `trip_details_test.dart` | Missing-dates and overlapping-range conflict validation; a valid range pops a `Trip` and appends it to `sampleTrips`; seeded trips render grouped/sorted on Trip Planner; a full round trip — schedule from Camp Details, confirm the snackbar, see it on a freshly-pumped Trip Planner; canceling a trip from Trip Details removes it from the list; Trip Details' View Camp opens Camp Details for the same camp. |

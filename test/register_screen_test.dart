@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:camper/models/user_role.dart';
 import 'package:camper/screens/register_screen.dart';
 
 Future<void> pumpRegisterScreen(WidgetTester tester) async {
@@ -105,6 +106,57 @@ void main() {
         await tester.enterText(
           find.byKey(const Key('emailField')),
           'jasmine@example.com',
+        );
+        await tester.enterText(
+          find.byKey(const Key('passwordField')),
+          'password123',
+        );
+        await tester.enterText(
+          find.byKey(const Key('confirmPasswordField')),
+          'password123',
+        );
+        await tester.tap(find.byKey(const Key('termsCheckbox')));
+        await tester.pump();
+
+        await tapCreateAccount(tester);
+
+        expect(find.text('Check your email'), findsOneWidget);
+      },
+    );
+  });
+
+  group('RegisterScreen account type', () {
+    testWidgets('defaults to Camper selected', (WidgetTester tester) async {
+      await pumpRegisterScreen(tester);
+
+      final segmentedButton = tester.widget<SegmentedButton<UserRole>>(
+        find.byKey(const Key('accountTypeField')),
+      );
+
+      expect(segmentedButton.selected, {UserRole.camper});
+    });
+
+    testWidgets(
+      'selecting Camp Owner and submitting a valid form still succeeds',
+      (WidgetTester tester) async {
+        await pumpRegisterScreen(tester);
+
+        await tester.ensureVisible(find.text('Camp Owner'));
+        await tester.tap(find.text('Camp Owner'));
+        await tester.pump();
+
+        final segmentedButton = tester.widget<SegmentedButton<Object?>>(
+          find.byKey(const Key('accountTypeField')),
+        );
+        expect(segmentedButton.selected, {UserRole.campOwner});
+
+        await tester.enterText(
+          find.byKey(const Key('fullNameField')),
+          'Owen Reyes',
+        );
+        await tester.enterText(
+          find.byKey(const Key('emailField')),
+          'owen@example.com',
         );
         await tester.enterText(
           find.byKey(const Key('passwordField')),

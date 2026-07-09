@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/user_role.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/auth_layout.dart';
@@ -23,6 +24,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _submitting = false;
   String? _formError;
   String? _submittedEmail;
+  UserRole _role = UserRole.camper;
 
   @override
   void dispose() {
@@ -48,6 +50,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
         fullName: _fullNameController.text.trim(),
+        role: _role,
       );
       setState(() => _submittedEmail = _emailController.text.trim());
     } on AuthException catch (e) {
@@ -102,6 +105,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
             FormErrorBanner(_formError!),
             const SizedBox(height: 16),
           ],
+          fieldLabel(context, 'I am a'),
+          SegmentedButton<UserRole>(
+            key: const Key('accountTypeField'),
+            segments: const [
+              ButtonSegment(
+                value: UserRole.camper,
+                label: Text('Camper'),
+                icon: Icon(Icons.hiking),
+              ),
+              ButtonSegment(
+                value: UserRole.campOwner,
+                label: Text('Camp Owner'),
+                icon: Icon(Icons.holiday_village),
+              ),
+            ],
+            selected: {_role},
+            onSelectionChanged: (selection) =>
+                setState(() => _role = selection.first),
+          ),
+          const SizedBox(height: 16),
           fieldLabel(context, 'Full name'),
           TextFormField(
             key: const Key('fullNameField'),

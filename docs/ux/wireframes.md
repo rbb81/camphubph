@@ -23,12 +23,21 @@ Legend: **Regions** (top to bottom or in layout order) → **Components** → **
 - **Components:** email/phone field, password field (with show/hide toggle), "Forgot password?" link, primary "Log in" button, divider, social sign-in buttons, "Don't have an account? Register" link.
 - **States:** default, validation error (inline, field-level), loading (button spinner), auth error (banner above form).
 - **Primary actions:** submit login, navigate to Forgot Password, navigate to Registration.
+- **Implemented (Phase 3, 2026-07-09):** shared by both account types — after a successful sign-in, the account's role (read from Supabase `user_metadata`, or an in-memory dummy-mode map when Supabase isn't configured) decides the destination: campers land on Home Feed (`/home`), camp owners land on the new Camp Owner Dashboard (`/owner-home`). No social sign-in yet.
 
 ## Registration
 - **Regions:** form (center), footer link (bottom), optional interest-picker step after account creation.
 - **Components:** name, email/phone, password fields; terms acknowledgment checkbox; primary "Create account" button; post-signup interest chips (Mountains/Beaches/Lakes/etc., multi-select) to seed Home Feed recommendations.
 - **States:** default, validation error, loading, success (routes to interest picker, then Home).
 - **Primary actions:** submit registration, select interests, skip interests.
+- **Implemented (Phase 3, 2026-07-09):** `lib/screens/register_screen.dart` gained an "I am a" `SegmentedButton` (Camper / Camp Owner, defaults to Camper) above the Full name field — the selected `UserRole` is stored on the account (`user_metadata.role` for real Supabase, an in-memory map keyed by email in dummy mode) and read back at login to route to the right destination. No interest-picker step yet; success still shows the "Check your email" confirmation panel regardless of account type.
+
+## Camp Owner Dashboard
+- **Regions:** app bar, centered welcome panel.
+- **Components:** icon, "Welcome, camp owner!" heading, body text.
+- **States:** default only.
+- **Primary actions:** none yet.
+- **Implemented (Phase 3, 2026-07-09):** `lib/screens/camp_owner_dashboard_screen.dart` — a minimal stub, the post-login destination for accounts registered with the Camp Owner account type. Not yet built: any actual listing/booking/guest-management tools, or a way to switch back to a camper view.
 
 ## Forgot Password
 - **Regions:** form (center), back link.
