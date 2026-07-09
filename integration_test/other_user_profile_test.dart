@@ -103,5 +103,27 @@ void main() {
 
       expect(find.text('Welcome to camping!'), findsOneWidget);
     });
+
+    testWidgets(
+      'Reviews tab shows this user\'s reviews and taps through to Camp Details',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: OtherUserProfileScreen(user: _userNamed('Rico P.')),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Reviews'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Taal Lake shoreline'), findsOneWidget);
+
+        await tester.tap(find.text('Taal Lake shoreline'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Overview'), findsOneWidget);
+      },
+    );
   });
 }

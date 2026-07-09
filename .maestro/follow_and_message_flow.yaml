@@ -6,6 +6,9 @@
 # partial/regex-match gotcha documented in the other Maestro flows in this
 # repo. Maestro's tapOn auto-scrolls to find its target, so no explicit
 # scroll step is needed to reach the suggested-user card below the fold.
+#
+# Also checks the Reviews tab, since Ate Baby has a seeded review
+# (chateau-glamp) but no seeded posts.
 appId: com.camphubph.camper
 env:
   MAESTRO_TEST_EMAIL: dummy@example.com
@@ -25,6 +28,8 @@ env:
 - assertVisible: "Follow request sent to Ate Baby"
 - tapOn: "Ate Baby"
 - assertVisible: "Expert camper"
+- tapOn: "Reviews"
+- assertVisible: "Chateau du Mer glamping"
 - tapOn: "Message"
 - assertVisible: "No messages yet. Say hello!"
 - tapOn: "Type a message"

@@ -11,6 +11,14 @@ FollowableUser _userNamed(String name) =>
     sampleOtherUsers.firstWhere((u) => u.profile.name == name);
 
 Future<void> _pumpProfile(WidgetTester tester, FollowableUser user) async {
+  // The Posts/Photos/Reviews tabs use sliver-based lists/grids, which only
+  // mount content within the viewport — bump the test surface like
+  // camp_details_screen_test.dart does for the same reason.
+  tester.view.physicalSize = const Size(800, 2000);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
   await tester.pumpWidget(
     MaterialApp(home: OtherUserProfileScreen(user: user)),
   );
@@ -154,5 +162,61 @@ void main() {
         isTrue,
       );
     });
+
+    testWidgets(
+      'Posts tab shows this user\'s posts and taps through to Post Details',
+      (tester) async {
+        await _pumpProfile(tester, _userNamed('Miguel Ibarra'));
+
+        expect(
+          find.textContaining('Finally tried camping by the lake'),
+          findsOneWidget,
+        );
+
+        await tester.tap(
+          find.textContaining('Finally tried camping by the lake'),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Post'), findsOneWidget);
+      },
+    );
+
+    testWidgets('Posts tab shows an empty state for a user with no posts', (
+      tester,
+    ) async {
+      await _pumpProfile(tester, _userNamed('Rico P.'));
+
+      expect(find.text('No posts yet.'), findsOneWidget);
+    });
+
+    testWidgets('Photos tab shows an empty state (no sample photos yet)', (
+      tester,
+    ) async {
+      await _pumpProfile(tester, _userNamed('Miguel Ibarra'));
+
+      await tester.tap(find.text('Photos'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No photos yet.'), findsOneWidget);
+    });
+
+    testWidgets(
+      'Reviews tab shows this user\'s reviews and taps through to Camp Details',
+      (tester) async {
+        await _pumpProfile(tester, _userNamed('Rico P.'));
+
+        await tester.tap(find.text('Reviews'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Taal Lake shoreline'), findsOneWidget);
+
+        await tester.tap(find.text('Taal Lake shoreline'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Overview'), findsOneWidget);
+      },
+    );
+
   });
 }
