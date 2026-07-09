@@ -35,11 +35,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: MessageThreadScreen(
-            thread: thread,
-            viewerIsOwner: false,
-            viewerName: 'Ana Dela Cruz',
-          ),
+          home: MessageThreadScreen(thread: thread, viewerName: 'Ana Dela Cruz'),
         ),
       );
       await tester.pumpAndSettle();
@@ -56,9 +52,9 @@ void main() {
     ) async {
       const thread = MessageThread(
         id: 'thread_integration_test',
+        participantA: 'Integration Guest',
+        participantB: 'Mt. Daraitan campsite',
         campId: 'daraitan',
-        campName: 'Mt. Daraitan campsite',
-        guestName: 'Integration Guest',
         messages: [],
       );
 
@@ -66,7 +62,6 @@ void main() {
         MaterialApp(
           home: MessageThreadScreen(
             thread: thread,
-            viewerIsOwner: false,
             viewerName: 'Integration Guest',
           ),
         ),

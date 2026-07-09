@@ -30,8 +30,13 @@ class _CampOwnerDashboardScreenState extends State<CampOwnerDashboardScreen> {
   void initState() {
     super.initState();
     _reservations = List.of(sampleReservations);
-    _threads = List.of(sampleMessageThreads);
+    _threads = _campThreads;
   }
+
+  // Only camper<->campsite threads belong on the owner's Messages list —
+  // camper<->camper threads (from Other User Profile) are unrelated.
+  List<MessageThread> get _campThreads =>
+      sampleMessageThreads.where((t) => t.campId != null).toList();
 
   List<MessageThread> get _sortedThreads {
     DateTime lastActivity(MessageThread t) =>
@@ -46,13 +51,12 @@ class _CampOwnerDashboardScreenState extends State<CampOwnerDashboardScreen> {
       MaterialPageRoute(
         builder: (_) => MessageThreadScreen(
           thread: thread,
-          viewerIsOwner: true,
           viewerName: session?.fullName ?? _defaultHostName,
         ),
       ),
     );
     if (!mounted) return;
-    setState(() => _threads = List.of(sampleMessageThreads));
+    setState(() => _threads = _campThreads);
   }
 
   List<Reservation> get _sorted {
@@ -439,12 +443,12 @@ class _ThreadCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    thread.guestName,
+                    thread.participantA,
                     style: const TextStyle(fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    thread.campName,
+                    thread.participantB,
                     style: const TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                   const SizedBox(height: 4),

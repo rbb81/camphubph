@@ -8,16 +8,14 @@ class MessageThreadScreen extends StatefulWidget {
   const MessageThreadScreen({
     super.key,
     required this.thread,
-    required this.viewerIsOwner,
     required this.viewerName,
   });
 
   final MessageThread thread;
 
-  /// Whether the person viewing this thread is the camp owner (true) or
-  /// the camper/guest (false) — determines message alignment/color and
-  /// which name new messages are attributed to.
-  final bool viewerIsOwner;
+  /// The name of whoever is viewing this thread — determines which
+  /// messages align as "mine", the app bar title (the other participant's
+  /// name), and which name new messages are attributed to.
   final String viewerName;
 
   @override
@@ -46,7 +44,7 @@ class _MessageThreadScreenState extends State<MessageThreadScreen> {
 
     final message = ChatMessage(
       id: 'msg_${DateTime.now().microsecondsSinceEpoch}',
-      senderIsOwner: widget.viewerIsOwner,
+      senderName: widget.viewerName,
       text: text,
       sentAt: DateTime.now(),
     );
@@ -61,7 +59,7 @@ class _MessageThreadScreenState extends State<MessageThreadScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.viewerIsOwner ? _thread.guestName : _thread.campName;
+    final title = _thread.otherParticipant(widget.viewerName);
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
@@ -80,9 +78,7 @@ class _MessageThreadScreenState extends State<MessageThreadScreen> {
                             for (final message in _thread.messages)
                               _MessageBubble(
                                 message: message,
-                                isMine:
-                                    message.senderIsOwner ==
-                                    widget.viewerIsOwner,
+                                isMine: message.senderName == widget.viewerName,
                               ),
                           ],
                         ),

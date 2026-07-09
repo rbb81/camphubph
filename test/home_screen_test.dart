@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:camper/data/sample_other_users.dart';
+import 'package:camper/models/followable_user.dart';
 import 'package:camper/screens/communities_screen.dart';
 import 'package:camper/screens/discover_screen.dart';
 import 'package:camper/screens/home_screen.dart';
@@ -18,6 +20,18 @@ Future<void> pumpHomeScreen(WidgetTester tester) async {
 }
 
 void main() {
+  late List<FollowableUser> otherUsersSnapshot;
+
+  setUp(() {
+    otherUsersSnapshot = List.of(sampleOtherUsers);
+  });
+
+  tearDown(() {
+    sampleOtherUsers
+      ..clear()
+      ..addAll(otherUsersSnapshot);
+  });
+
   group('HomeScreen', () {
     testWidgets('shows the app bar and bottom tab bar', (tester) async {
       await pumpHomeScreen(tester);
@@ -179,5 +193,84 @@ void main() {
 
       expect(find.text('3'), findsOneWidget);
     });
+
+    testWidgets('tapping a friend post author opens their profile', (
+      tester,
+    ) async {
+      await pumpHomeScreen(tester);
+
+      await tester.tap(find.byKey(const Key('friendPostAuthorTap')).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Jasmine Reyes'), findsWidgets);
+      expect(find.byKey(const Key('followButton')), findsOneWidget);
+      expect(find.byKey(const Key('messageUserButton')), findsOneWidget);
+    });
+
+    testWidgets('tapping a suggested user opens their profile', (
+      tester,
+    ) async {
+      await pumpHomeScreen(tester);
+
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('suggestedUserTap')),
+        200,
+        scrollable: find.byType(Scrollable),
+      );
+      await tester.tap(find.byKey(const Key('suggestedUserTap')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ate Baby'), findsWidgets);
+    });
+
+    testWidgets(
+      'requesting to follow a suggested user shows Requested, then Following after approval',
+      (tester) async {
+        await pumpHomeScreen(tester);
+
+        await tester.scrollUntilVisible(
+          find.byKey(const Key('suggestedUserFollowButton')),
+          200,
+          scrollable: find.byType(Scrollable),
+        );
+
+        final followButton = find.byKey(
+          const Key('suggestedUserFollowButton'),
+        );
+        expect(
+          find.descendant(of: followButton, matching: find.text('Follow')),
+          findsOneWidget,
+        );
+
+        await tester.tap(followButton);
+        await tester.pump();
+
+        expect(
+          find.descendant(
+            of: followButton,
+            matching: find.text('Requested'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.text('Follow request sent to Ate Baby'),
+          findsOneWidget,
+        );
+
+        // The auto-approval snackbar queues behind the still-showing
+        // "request sent" one, so assert on the button state instead of the
+        // second snackbar's text — same convention as communities_screen_test.
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pump();
+
+        expect(
+          find.descendant(
+            of: followButton,
+            matching: find.text('Following'),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }

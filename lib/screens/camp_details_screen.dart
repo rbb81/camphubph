@@ -91,13 +91,13 @@ class _CampDetailsScreenState extends State<CampDetailsScreen>
   Future<void> _messageCampsite() async {
     final guestName = sampleProfile.name;
     final thread = sampleMessageThreads.firstWhere(
-      (t) => t.campId == _camp.id && t.guestName == guestName,
+      (t) => t.campId == _camp.id && t.participantA == guestName,
       orElse: () {
         final created = MessageThread(
           id: 'thread_${DateTime.now().microsecondsSinceEpoch}',
+          participantA: guestName,
+          participantB: _camp.name,
           campId: _camp.id,
-          campName: _camp.name,
-          guestName: guestName,
           messages: const [],
         );
         sampleMessageThreads.add(created);
@@ -106,11 +106,7 @@ class _CampDetailsScreenState extends State<CampDetailsScreen>
     );
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => MessageThreadScreen(
-          thread: thread,
-          viewerIsOwner: false,
-          viewerName: guestName,
-        ),
+        builder: (_) => MessageThreadScreen(thread: thread, viewerName: guestName),
       ),
     );
   }

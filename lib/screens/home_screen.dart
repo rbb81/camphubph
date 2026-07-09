@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import '../data/sample_camps.dart';
 import '../data/sample_communities.dart';
 import '../data/sample_feed.dart';
+import '../data/sample_other_users.dart';
 import '../data/sample_profile.dart';
 import '../models/camp.dart';
 import '../models/community.dart';
+import '../models/followable_user.dart';
 import '../models/home_feed_item.dart';
+import '../models/profile.dart';
 import '../theme/app_theme.dart';
 import 'camp_details_screen.dart';
 import 'community_feed_screen.dart';
 import 'create_post_screen.dart';
+import 'other_user_profile_screen.dart';
 import 'post_details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -78,6 +82,72 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => CampDetailsScreen(camp: camp)));
+  }
+
+  void _openUserProfile(String name, String initials) {
+    final user = sampleOtherUsers.firstWhere(
+      (u) => u.profile.name == name,
+      orElse: () => FollowableUser(
+        profile: UserProfile(
+          name: name,
+          initials: initials,
+          bio: '',
+          experienceLevel: ExperienceLevel.beginner,
+          favoriteStyles: const [],
+          followerCount: 0,
+          followingCount: 0,
+        ),
+      ),
+    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => OtherUserProfileScreen(user: user)));
+  }
+
+  void _toggleFollowFromSuggestion(SuggestedUserItem item) {
+    final index = sampleOtherUsers.indexWhere(
+      (u) => u.profile.name == item.name,
+    );
+    if (index == -1) return;
+    final current = sampleOtherUsers[index];
+
+    if (current.followStatus != FollowStatus.notFollowing) {
+      setState(
+        () => sampleOtherUsers[index] = current.copyWith(
+          followStatus: FollowStatus.notFollowing,
+        ),
+      );
+      return;
+    }
+
+    setState(
+      () => sampleOtherUsers[index] = current.copyWith(
+        followStatus: FollowStatus.requested,
+      ),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Follow request sent to ${item.name}')),
+    );
+
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      final i = sampleOtherUsers.indexWhere(
+        (u) => u.profile.name == item.name,
+      );
+      if (i == -1 || sampleOtherUsers[i].followStatus != FollowStatus.requested) {
+        return;
+      }
+      setState(
+        () => sampleOtherUsers[i] = sampleOtherUsers[i].copyWith(
+          followStatus: FollowStatus.following,
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${item.name} accepted your follow request.'),
+        ),
+      );
+    });
   }
 
   void _openCommunity(CommunityPostItem item) {
@@ -171,6 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
         item: item,
         onLike: () => _toggleLike(index, item),
         onOpenPost: () => _openPost(index, item),
+        onTapAuthor: () => _openUserProfile(item.authorName, item.authorInitials),
       ),
       RecommendedCampItem() => _RecommendedCampCard(
         item: item,
@@ -181,7 +252,11 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: () => _openCommunity(item),
       ),
       TipItem() => _TipCard(item: item),
-      SuggestedUserItem() => _SuggestedUserCard(item: item),
+      SuggestedUserItem() => _SuggestedUserCard(
+        item: item,
+        onTapUser: () => _openUserProfile(item.name, item.initials),
+        onToggleFollow: () => _toggleFollowFromSuggestion(item),
+      ),
     };
   }
 }
@@ -239,11 +314,13 @@ class _FriendPostCard extends StatelessWidget {
     required this.item,
     required this.onLike,
     required this.onOpenPost,
+    required this.onTapAuthor,
   });
 
   final FriendPostItem item;
   final VoidCallback onLike;
   final VoidCallback onOpenPost;
+  final VoidCallback onTapAuthor;
 
   @override
   Widget build(BuildContext context) {
@@ -255,27 +332,32 @@ class _FriendPostCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                _Avatar(item.authorInitials),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.authorName,
-                        style: const TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      Text(
-                        '${item.location} · ${item.timeAgo}',
-                        style: Theme.of(context).textTheme.bodySmall
-                            ?.copyWith(color: Colors.grey),
-                      ),
-                    ],
+            InkWell(
+              key: const Key('friendPostAuthorTap'),
+              onTap: onTapAuthor,
+              borderRadius: BorderRadius.circular(8),
+              child: Row(
+                children: [
+                  _Avatar(item.authorInitials),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.authorName,
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        Text(
+                          '${item.location} · ${item.timeAgo}',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: Colors.grey),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 10),
             Text(item.caption),
@@ -454,38 +536,78 @@ class _TipCard extends StatelessWidget {
 }
 
 class _SuggestedUserCard extends StatelessWidget {
-  const _SuggestedUserCard({required this.item});
+  const _SuggestedUserCard({
+    required this.item,
+    required this.onTapUser,
+    required this.onToggleFollow,
+  });
 
   final SuggestedUserItem item;
+  final VoidCallback onTapUser;
+  final VoidCallback onToggleFollow;
 
   @override
   Widget build(BuildContext context) {
+    final followStatus = sampleOtherUsers
+        .firstWhere(
+          (u) => u.profile.name == item.name,
+          orElse: () => FollowableUser(
+            profile: UserProfile(
+              name: item.name,
+              initials: item.initials,
+              bio: '',
+              experienceLevel: ExperienceLevel.beginner,
+              favoriteStyles: const [],
+              followerCount: 0,
+              followingCount: 0,
+            ),
+          ),
+        )
+        .followStatus;
+    final label = switch (followStatus) {
+      FollowStatus.notFollowing => 'Follow',
+      FollowStatus.requested => 'Requested',
+      FollowStatus.following => 'Following',
+    };
+
     return _Card(
       child: Row(
         children: [
-          _Avatar(item.initials),
-          const SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.name, style: const TextStyle(fontWeight: FontWeight.w500)),
-                Text(
-                  item.subtitle,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey,
+            child: InkWell(
+              key: const Key('suggestedUserTap'),
+              onTap: onTapUser,
+              borderRadius: BorderRadius.circular(8),
+              child: Row(
+                children: [
+                  _Avatar(item.initials),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.name,
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        Text(
+                          item.subtitle,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
+          const SizedBox(width: 8),
           OutlinedButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Following ${item.name}')),
-              );
-            },
-            child: const Text('Follow'),
+            key: const Key('suggestedUserFollowButton'),
+            onPressed: onToggleFollow,
+            child: Text(label),
           ),
         ],
       ),

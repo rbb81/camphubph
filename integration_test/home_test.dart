@@ -104,5 +104,17 @@ void main() {
 
       expect(find.text('Overview'), findsOneWidget);
     });
+
+    testWidgets('tapping a friend post author opens their profile', (
+      tester,
+    ) async {
+      await pumpHomeScreen(tester);
+
+      await tester.tap(find.byKey(const Key('friendPostAuthorTap')).first);
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('followButton')), findsOneWidget);
+      expect(find.byKey(const Key('messageUserButton')), findsOneWidget);
+    });
   });
 }

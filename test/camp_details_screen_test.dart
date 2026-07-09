@@ -236,7 +236,7 @@ void main() {
           sampleMessageThreads.any(
             (t) =>
                 t.campId == _campWithoutReviews.id &&
-                t.guestName == 'Ana Dela Cruz',
+                t.participantA == 'Ana Dela Cruz',
           ),
           isTrue,
         );

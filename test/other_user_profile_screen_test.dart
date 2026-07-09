@@ -1,0 +1,158 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:camper/data/sample_message_threads.dart';
+import 'package:camper/data/sample_other_users.dart';
+import 'package:camper/models/followable_user.dart';
+import 'package:camper/models/message_thread.dart';
+import 'package:camper/screens/other_user_profile_screen.dart';
+
+FollowableUser _userNamed(String name) =>
+    sampleOtherUsers.firstWhere((u) => u.profile.name == name);
+
+Future<void> _pumpProfile(WidgetTester tester, FollowableUser user) async {
+  await tester.pumpWidget(
+    MaterialApp(home: OtherUserProfileScreen(user: user)),
+  );
+}
+
+void main() {
+  late List<FollowableUser> otherUsersSnapshot;
+  late List<MessageThread> threadsSnapshot;
+
+  setUp(() {
+    otherUsersSnapshot = List.of(sampleOtherUsers);
+    threadsSnapshot = List.of(sampleMessageThreads);
+  });
+
+  tearDown(() {
+    sampleOtherUsers
+      ..clear()
+      ..addAll(otherUsersSnapshot);
+    sampleMessageThreads
+      ..clear()
+      ..addAll(threadsSnapshot);
+  });
+
+  group('OtherUserProfileScreen', () {
+    testWidgets('renders identity block from the profile', (tester) async {
+      await _pumpProfile(tester, _userNamed('Rico P.'));
+
+      expect(find.text('Rico P.'), findsWidgets);
+      expect(
+        find.textContaining('Weekend warrior'),
+        findsOneWidget,
+      );
+      expect(find.text('Intermediate camper'), findsOneWidget);
+      expect(find.text('Car camping'), findsOneWidget);
+    });
+
+    testWidgets(
+      'tapping Follow requests, then auto-approves to Following',
+      (tester) async {
+        await _pumpProfile(tester, _userNamed('Rico P.'));
+
+        final followButton = find.byKey(const Key('followButton'));
+        expect(
+          find.descendant(of: followButton, matching: find.text('Follow')),
+          findsOneWidget,
+        );
+
+        await tester.tap(followButton);
+        await tester.pump();
+
+        expect(
+          find.descendant(
+            of: followButton,
+            matching: find.text('Requested'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.text('Follow request sent to Rico P.'),
+          findsOneWidget,
+        );
+
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pump();
+
+        expect(
+          find.descendant(
+            of: followButton,
+            matching: find.text('Following'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          sampleOtherUsers
+              .firstWhere((u) => u.profile.name == 'Rico P.')
+              .followStatus,
+          FollowStatus.following,
+        );
+      },
+    );
+
+    testWidgets('canceling a pending request reverts to Follow', (
+      tester,
+    ) async {
+      await _pumpProfile(tester, _userNamed('Rico P.'));
+
+      final followButton = find.byKey(const Key('followButton'));
+      await tester.tap(followButton);
+      await tester.pump();
+      expect(
+        find.descendant(of: followButton, matching: find.text('Requested')),
+        findsOneWidget,
+      );
+
+      await tester.tap(followButton);
+      await tester.pump();
+
+      expect(
+        find.descendant(of: followButton, matching: find.text('Follow')),
+        findsOneWidget,
+      );
+
+      // The canceled request must not be auto-approved by the pending timer.
+      await tester.pump(const Duration(seconds: 2));
+      expect(
+        find.descendant(of: followButton, matching: find.text('Follow')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Message opens a thread with an existing conversation', (
+      tester,
+    ) async {
+      await _pumpProfile(tester, _userNamed('Jasmine Reyes'));
+
+      await tester.tap(find.byKey(const Key('messageUserButton')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Jasmine Reyes'), findsOneWidget);
+      expect(
+        find.textContaining('That sunrise shot'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Message starts a new empty thread when none exists yet', (
+      tester,
+    ) async {
+      await _pumpProfile(tester, _userNamed('Carlo D.'));
+
+      await tester.tap(find.byKey(const Key('messageUserButton')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No messages yet. Say hello!'), findsOneWidget);
+      expect(
+        sampleMessageThreads.any(
+          (t) =>
+              t.campId == null &&
+              (t.participantA == 'Carlo D.' || t.participantB == 'Carlo D.'),
+        ),
+        isTrue,
+      );
+    });
+  });
+}

@@ -206,8 +206,8 @@ void main() {
               .firstWhere((t) => t.id == 'thread_seed_1')
               .messages
               .last
-              .senderIsOwner,
-          isTrue,
+              .senderName,
+          'Mang Rodel',
         );
 
         await tester.pageBack();
