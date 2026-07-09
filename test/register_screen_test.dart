@@ -151,6 +151,10 @@ void main() {
         expect(segmentedButton.selected, {UserRole.campOwner});
 
         await tester.enterText(
+          find.byKey(const Key('campsiteNameField')),
+          'Daraitan Basecamp',
+        );
+        await tester.enterText(
           find.byKey(const Key('fullNameField')),
           'Owen Reyes',
         );
@@ -172,6 +176,60 @@ void main() {
         await tapCreateAccount(tester);
 
         expect(find.text('Check your email'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Campsite name only appears for Camp Owner, and relabels Full name to Host name',
+      (WidgetTester tester) async {
+        await pumpRegisterScreen(tester);
+
+        expect(find.byKey(const Key('campsiteNameField')), findsNothing);
+        expect(find.text('Full name'), findsOneWidget);
+        expect(find.text('Host name'), findsNothing);
+
+        await tester.ensureVisible(find.text('Camp Owner'));
+        await tester.tap(find.text('Camp Owner'));
+        await tester.pump();
+
+        expect(find.byKey(const Key('campsiteNameField')), findsOneWidget);
+        expect(find.text('Host name'), findsOneWidget);
+        expect(find.text('Full name'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'submitting Camp Owner without a campsite name shows a validation error',
+      (WidgetTester tester) async {
+        await pumpRegisterScreen(tester);
+
+        await tester.ensureVisible(find.text('Camp Owner'));
+        await tester.tap(find.text('Camp Owner'));
+        await tester.pump();
+
+        await tester.enterText(
+          find.byKey(const Key('fullNameField')),
+          'Owen Reyes',
+        );
+        await tester.enterText(
+          find.byKey(const Key('emailField')),
+          'owen2@example.com',
+        );
+        await tester.enterText(
+          find.byKey(const Key('passwordField')),
+          'password123',
+        );
+        await tester.enterText(
+          find.byKey(const Key('confirmPasswordField')),
+          'password123',
+        );
+        await tester.tap(find.byKey(const Key('termsCheckbox')));
+        await tester.pump();
+
+        await tapCreateAccount(tester);
+
+        expect(find.text('Enter your campsite name.'), findsOneWidget);
+        expect(find.text('Check your email'), findsNothing);
       },
     );
   });

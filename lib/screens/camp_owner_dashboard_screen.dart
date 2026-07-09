@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../data/sample_reservations.dart';
 import '../models/reservation.dart';
+import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import 'add_reservation_screen.dart';
 
-const _businessName = 'Daraitan Basecamp';
-const _hostName = 'Hosted by Mang Rodel';
+/// Shown when the dashboard is reached without a real signed-in session
+/// (e.g. via Landing's "Preview Camp Owner View (test)" shortcut).
+const _defaultBusinessName = 'Daraitan Basecamp';
+const _defaultHostName = 'Mang Rodel';
 
 class CampOwnerDashboardScreen extends StatefulWidget {
   const CampOwnerDashboardScreen({super.key});
@@ -69,6 +72,7 @@ class _CampOwnerDashboardScreenState extends State<CampOwnerDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final session = AuthService.instance.currentSession;
     return Scaffold(
       appBar: AppBar(title: const Text('Camp Owner Dashboard')),
       floatingActionButton: FloatingActionButton.extended(
@@ -84,7 +88,11 @@ class _CampOwnerDashboardScreenState extends State<CampOwnerDashboardScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
               children: [
-                const _BusinessHeader(),
+                _BusinessHeader(
+                  businessName: session?.campsiteName ?? _defaultBusinessName,
+                  hostName: session?.fullName ?? _defaultHostName,
+                  hostEmail: session?.email,
+                ),
                 const SizedBox(height: 24),
                 Row(
                   children: [
@@ -128,12 +136,23 @@ class _CampOwnerDashboardScreenState extends State<CampOwnerDashboardScreen> {
 }
 
 class _BusinessHeader extends StatelessWidget {
-  const _BusinessHeader();
+  const _BusinessHeader({
+    required this.businessName,
+    required this.hostName,
+    this.hostEmail,
+  });
+
+  final String businessName;
+  final String hostName;
+  final String? hostEmail;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? AppColors.brandDark : AppColors.brand;
+    final hostedByLine = hostEmail == null
+        ? 'Hosted by $hostName'
+        : 'Hosted by $hostName · $hostEmail';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -157,12 +176,12 @@ class _BusinessHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _businessName,
+                  businessName,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  _hostName,
+                  hostedByLine,
                   style: const TextStyle(color: Colors.grey, fontSize: 13),
                 ),
                 const SizedBox(height: 8),

@@ -15,6 +15,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
+  final _campsiteNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -29,6 +30,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void dispose() {
     _fullNameController.dispose();
+    _campsiteNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -51,6 +53,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         password: _passwordController.text,
         fullName: _fullNameController.text.trim(),
         role: _role,
+        campsiteName: _role == UserRole.campOwner
+            ? _campsiteNameController.text.trim()
+            : null,
       );
       setState(() => _submittedEmail = _emailController.text.trim());
     } on AuthException catch (e) {
@@ -124,15 +129,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
             onSelectionChanged: (selection) =>
                 setState(() => _role = selection.first),
           ),
+          if (_role == UserRole.campOwner) ...[
+            const SizedBox(height: 16),
+            fieldLabel(context, 'Campsite name'),
+            TextFormField(
+              key: const Key('campsiteNameField'),
+              controller: _campsiteNameController,
+              decoration: const InputDecoration(hintText: 'Daraitan Basecamp'),
+              validator: (value) => (value == null || value.trim().isEmpty)
+                  ? 'Enter your campsite name.'
+                  : null,
+            ),
+          ],
           const SizedBox(height: 16),
-          fieldLabel(context, 'Full name'),
+          fieldLabel(context, _role == UserRole.campOwner ? 'Host name' : 'Full name'),
           TextFormField(
             key: const Key('fullNameField'),
             controller: _fullNameController,
             autofillHints: const [AutofillHints.name],
             decoration: const InputDecoration(hintText: 'Jasmine Reyes'),
             validator: (value) => (value == null || value.trim().isEmpty)
-                ? 'Enter your full name.'
+                ? _role == UserRole.campOwner
+                    ? 'Enter the host name.'
+                    : 'Enter your full name.'
                 : null,
           ),
           const SizedBox(height: 16),

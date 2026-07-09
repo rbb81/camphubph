@@ -9,6 +9,8 @@ appId: com.camphubph.camper
 - tapOn: "Jasmine Reyes"
 - inputText: "Owen Reyes"
 - tapOn: "Camp Owner"
+- tapOn: "Daraitan Basecamp"
+- inputText: "Daraitan Basecamp"
 - tapOn: "name@example.com"
 - inputText: "owen-maestro@example.com"
 - tapOn: "At least 8 characters"

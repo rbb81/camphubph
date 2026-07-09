@@ -64,6 +64,7 @@ void main() {
         password: 'password123',
         fullName: 'Owen Reyes',
         role: UserRole.campOwner,
+        campsiteName: 'Daraitan Basecamp',
       );
 
       await app.main();
@@ -81,6 +82,8 @@ void main() {
       await tapLogInButton(tester);
 
       expect(find.text('Camp Owner Dashboard'), findsOneWidget);
+      expect(find.text('Daraitan Basecamp'), findsOneWidget);
+      expect(find.text('Hosted by Owen Reyes · $email'), findsOneWidget);
       expect(find.text('Recommended near you'), findsNothing);
     });
   });

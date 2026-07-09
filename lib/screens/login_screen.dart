@@ -37,13 +37,13 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final role = await AuthService.instance.signIn(
+      final result = await AuthService.instance.signIn(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
       if (mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil(
-          role == UserRole.campOwner ? '/owner-home' : '/home',
+          result.role == UserRole.campOwner ? '/owner-home' : '/home',
           (route) => false,
         );
       }

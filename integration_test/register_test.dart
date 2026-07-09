@@ -82,6 +82,10 @@ void main() {
       await tester.pump();
 
       await tester.enterText(
+        find.byKey(const Key('campsiteNameField')),
+        'Daraitan Basecamp',
+      );
+      await tester.enterText(
         find.byKey(const Key('fullNameField')),
         'Owen Reyes',
       );

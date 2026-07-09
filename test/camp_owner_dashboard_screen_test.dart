@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:camper/data/sample_reservations.dart';
+import 'package:camper/models/auth_result.dart';
 import 'package:camper/models/reservation.dart';
+import 'package:camper/models/user_role.dart';
 import 'package:camper/screens/camp_owner_dashboard_screen.dart';
+import 'package:camper/services/auth_service.dart';
 
 Future<void> _pumpDashboard(WidgetTester tester) async {
   tester.view.physicalSize = const Size(400, 1400);
@@ -32,29 +35,54 @@ Future<void> _pickDate(WidgetTester tester, Key fieldKey, DateTime date) async {
 
 void main() {
   late List<Reservation> reservationsSnapshot;
+  late AuthResult? sessionSnapshot;
 
   setUp(() {
     reservationsSnapshot = List.of(sampleReservations);
+    sessionSnapshot = AuthService.instance.currentSession;
   });
 
   tearDown(() {
     sampleReservations
       ..clear()
       ..addAll(reservationsSnapshot);
+    AuthService.instance.currentSession = sessionSnapshot;
   });
 
   group('CampOwnerDashboardScreen', () {
-    testWidgets('renders the business header, distinct from camper Profile', (
-      tester,
-    ) async {
-      await _pumpDashboard(tester);
+    testWidgets(
+      'with no signed-in session, renders demo placeholder business info',
+      (tester) async {
+        AuthService.instance.currentSession = null;
+        await _pumpDashboard(tester);
 
-      expect(find.text('Daraitan Basecamp'), findsOneWidget);
-      expect(find.text('Hosted by Mang Rodel'), findsOneWidget);
-      expect(find.text('Camp Owner'), findsOneWidget);
-      expect(find.text('Followers'), findsNothing);
-      expect(find.text('Following'), findsNothing);
-    });
+        expect(find.text('Daraitan Basecamp'), findsOneWidget);
+        expect(find.text('Hosted by Mang Rodel'), findsOneWidget);
+        expect(find.text('Camp Owner'), findsOneWidget);
+        expect(find.text('Followers'), findsNothing);
+        expect(find.text('Following'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'with a signed-in session, renders the real campsite name and host info',
+      (tester) async {
+        AuthService.instance.currentSession = const AuthResult(
+          role: UserRole.campOwner,
+          email: 'realowner@example.com',
+          fullName: 'Real Owner',
+          campsiteName: 'Real Campsite',
+        );
+        await _pumpDashboard(tester);
+
+        expect(find.text('Real Campsite'), findsOneWidget);
+        expect(
+          find.text('Hosted by Real Owner · realowner@example.com'),
+          findsOneWidget,
+        );
+        expect(find.text('Daraitan Basecamp'), findsNothing);
+      },
+    );
 
     testWidgets('renders seeded reservations with guest, camp, and status', (
       tester,

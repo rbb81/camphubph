@@ -3,8 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'package:camper/data/sample_reservations.dart';
+import 'package:camper/models/auth_result.dart';
 import 'package:camper/models/reservation.dart';
+import 'package:camper/models/user_role.dart';
 import 'package:camper/screens/camp_owner_dashboard_screen.dart';
+import 'package:camper/services/auth_service.dart';
 
 // Normally reached after a camp-owner login (see integration_test/login_test.dart)
 // or the Landing screen's "Preview Camp Owner View (test)" shortcut (see
@@ -37,27 +40,51 @@ void main() {
 
   group('Camp Owner Dashboard (real browser)', () {
     late List<Reservation> reservationsSnapshot;
+    late AuthResult? sessionSnapshot;
 
     setUp(() {
       reservationsSnapshot = List.of(sampleReservations);
+      sessionSnapshot = AuthService.instance.currentSession;
     });
 
     tearDown(() {
       sampleReservations
         ..clear()
         ..addAll(reservationsSnapshot);
+      AuthService.instance.currentSession = sessionSnapshot;
     });
 
-    testWidgets('renders the business header and seeded reservations', (
-      tester,
-    ) async {
-      await pumpDashboard(tester);
+    testWidgets(
+      'with no signed-in session, renders the demo placeholder business info',
+      (tester) async {
+        AuthService.instance.currentSession = null;
+        await pumpDashboard(tester);
 
-      expect(find.text('Daraitan Basecamp'), findsOneWidget);
-      expect(find.text('Camp Owner'), findsOneWidget);
-      expect(find.text('Miguel Santos'), findsOneWidget);
-      expect(find.text('Reservations'), findsOneWidget);
-    });
+        expect(find.text('Daraitan Basecamp'), findsOneWidget);
+        expect(find.text('Camp Owner'), findsOneWidget);
+        expect(find.text('Miguel Santos'), findsOneWidget);
+        expect(find.text('Reservations'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'with a signed-in session, renders the real campsite name and host info',
+      (tester) async {
+        AuthService.instance.currentSession = const AuthResult(
+          role: UserRole.campOwner,
+          email: 'realowner@example.com',
+          fullName: 'Real Owner',
+          campsiteName: 'Real Campsite',
+        );
+        await pumpDashboard(tester);
+
+        expect(find.text('Real Campsite'), findsOneWidget);
+        expect(
+          find.text('Hosted by Real Owner · realowner@example.com'),
+          findsOneWidget,
+        );
+      },
+    );
 
     testWidgets('confirming a pending reservation flips its status', (
       tester,

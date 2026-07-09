@@ -11,12 +11,13 @@ void main() {
     test(
       'signIn defaults to camper for an email that never signed up',
       () async {
-        final role = await AuthService.instance.signIn(
+        final result = await AuthService.instance.signIn(
           email: _uniqueEmail('unknown'),
           password: 'whatever123',
         );
 
-        expect(role, UserRole.camper);
+        expect(result.role, UserRole.camper);
+        expect(result.campsiteName, isNull);
       },
     );
 
@@ -29,12 +30,12 @@ void main() {
         fullName: 'Test Owner',
         role: UserRole.campOwner,
       );
-      final role = await AuthService.instance.signIn(
+      final result = await AuthService.instance.signIn(
         email: email,
         password: 'password123',
       );
 
-      expect(role, UserRole.campOwner);
+      expect(result.role, UserRole.campOwner);
     });
 
     test('signUp as camper then signIn returns camper', () async {
@@ -46,12 +47,36 @@ void main() {
         fullName: 'Test Camper',
         role: UserRole.camper,
       );
-      final role = await AuthService.instance.signIn(
+      final result = await AuthService.instance.signIn(
         email: email,
         password: 'password123',
       );
 
-      expect(role, UserRole.camper);
+      expect(result.role, UserRole.camper);
     });
+
+    test(
+      'signUp with a campsite name round-trips through signIn and sets currentSession',
+      () async {
+        final email = _uniqueEmail('owner-with-campsite');
+
+        await AuthService.instance.signUp(
+          email: email,
+          password: 'password123',
+          fullName: 'Mang Rodel',
+          role: UserRole.campOwner,
+          campsiteName: 'Daraitan Basecamp',
+        );
+        final result = await AuthService.instance.signIn(
+          email: email,
+          password: 'password123',
+        );
+
+        expect(result.fullName, 'Mang Rodel');
+        expect(result.campsiteName, 'Daraitan Basecamp');
+        expect(result.email, email);
+        expect(AuthService.instance.currentSession, same(result));
+      },
+    );
   });
 }
