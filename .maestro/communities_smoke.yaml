@@ -1,0 +1,33 @@
+# Communities is reachable via the bottom nav. See home_smoke.yaml for the
+# login-credential override instructions.
+#
+# "Budget Backpackers PH" is the first "Suggested communities" entry (public,
+# not joined) in sample_communities.dart, so its "Join" button is
+# deterministically index 0 among the (several) identically-labeled "Join"
+# buttons on this screen. The regex anchors (^...$) force an exact match —
+# Maestro's plain-string text selector does a partial/regex match by
+# default, and "Join" is a substring of both "Joined" and "Request to Join",
+# which are also present on this screen.
+appId: com.camphubph.camper
+env:
+  MAESTRO_TEST_EMAIL: dummy@example.com
+  MAESTRO_TEST_PASSWORD: dummy-password
+---
+- launchApp
+- tapOn: "Log in"
+- tapOn: "name@example.com"
+- inputText: ${MAESTRO_TEST_EMAIL}
+- tapOn: "Your password"
+- inputText: ${MAESTRO_TEST_PASSWORD}
+- tapOn:
+    text: "Log in"
+    index: 1
+- tapOn: "Communities"
+- assertVisible: "Your communities"
+- assertVisible: "Luzon Overlanders"
+- assertVisible: "Suggested communities"
+- assertVisible: "Budget Backpackers PH"
+- tapOn:
+    text: "^Join$"
+    index: 0
+- assertVisible: "Joined"

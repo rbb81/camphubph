@@ -1,0 +1,42 @@
+# Schedule Trip is reached via Discover -> a category -> a camp -> "Add to
+# Trip". See discover_smoke.yaml for the login-credential override
+# instructions.
+#
+# Uses "Sierra Madre overland trail" (Overlanding category, the only camp
+# there) since it has no seeded trip, avoiding an accidental conflict with
+# sample_trips.dart's seed data. Drives the Material date picker via its
+# "Switch to input" toggle + typed mm/dd/yyyy text, same technique verified
+# to work in test/schedule_trip_screen_test.dart and
+# integration_test/schedule_trip_test.dart — unverified here specifically
+# since this repo has no Android/iOS emulator to run Maestro against yet.
+appId: com.camphubph.camper
+env:
+  MAESTRO_TEST_EMAIL: dummy@example.com
+  MAESTRO_TEST_PASSWORD: dummy-password
+---
+- launchApp
+- tapOn: "Log in"
+- tapOn: "name@example.com"
+- inputText: ${MAESTRO_TEST_EMAIL}
+- tapOn: "Your password"
+- inputText: ${MAESTRO_TEST_PASSWORD}
+- tapOn:
+    text: "Log in"
+    index: 1
+- tapOn: "Discover"
+- tapOn: "Overlanding"
+- tapOn: "Sierra Madre overland trail"
+- tapOn: "Add to Trip"
+- assertVisible: "Schedule Trip"
+- tapOn: "^Save$"
+- assertVisible: "Select both check-in and check-out dates."
+- tapOn: "Select check-in date"
+- tapOn: "Switch to input"
+- inputText: "12/24/2026"
+- tapOn: "OK"
+- tapOn: "Select check-out date"
+- tapOn: "Switch to input"
+- inputText: "12/26/2026"
+- tapOn: "OK"
+- tapOn: "^Save$"
+- assertVisible: "Added Sierra Madre overland trail to your trips."

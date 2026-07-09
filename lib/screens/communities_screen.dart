@@ -169,6 +169,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         key: const Key('createCommunityButton'),
+        tooltip: 'Create community',
         onPressed: _createCommunity,
         child: const Icon(Icons.add),
       ),

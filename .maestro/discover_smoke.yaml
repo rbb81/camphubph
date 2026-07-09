@@ -1,10 +1,13 @@
-# Home is only reachable after logging in. If the app was built WITHOUT
+# Discover is only reachable after logging in. If the app was built WITHOUT
 # --dart-define-from-file, the dummy auth fallback accepts any credentials,
 # so the defaults below just work:
-#   maestro test .maestro/home_smoke.yaml
+#   maestro test .maestro/discover_smoke.yaml
 # If the app was built WITH real Supabase credentials, override with a
 # pre-existing, email-confirmed test account instead:
-#   maestro test -e MAESTRO_TEST_EMAIL=you@example.com -e MAESTRO_TEST_PASSWORD=yourpassword .maestro/home_smoke.yaml
+#   maestro test -e MAESTRO_TEST_EMAIL=you@example.com -e MAESTRO_TEST_PASSWORD=yourpassword .maestro/discover_smoke.yaml
+#
+# Uses the "Rivers" category, which has exactly one sample camp
+# (Pagsanjan River camp), so the results-screen assertion is unambiguous.
 appId: com.camphubph.camper
 env:
   MAESTRO_TEST_EMAIL: dummy@example.com
@@ -19,11 +22,10 @@ env:
 - tapOn:
     text: "Log in"
     index: 1
-- assertVisible: "Camper"
-- assertVisible: "Recommended near you"
-- assertVisible: "Home"
+- tapOn: "Discover"
 - assertVisible: "Discover"
-- assertVisible: "Communities"
-- assertVisible: "Profile"
-- tapOn: "Map"
-- assertVisible: "Map is coming soon."
+- assertVisible: "Mountains"
+- assertVisible: "Rivers"
+- tapOn: "Rivers"
+- assertVisible: "Pagsanjan River camp"
+- assertVisible: "Pagsanjan, Laguna"

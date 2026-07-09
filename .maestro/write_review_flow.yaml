@@ -1,0 +1,36 @@
+# Write Review is reached via Discover -> a category -> a camp -> Reviews tab
+# -> "Write a review". See discover_smoke.yaml for the login-credential
+# override instructions.
+#
+# Only exercises the validation-error path (submit with no star rating
+# picked) — the star-rating IconButtons in write_review_screen.dart have no
+# tooltip/visible text, so Maestro's text-based taps can't select a rating
+# (same limitation already documented in profile_smoke.yaml for icon-only
+# controls). The happy path is covered instead by
+# test/write_review_screen_test.dart and integration_test/write_review_test.dart.
+#
+# The "^Submit$" tap is regex-anchored for an exact match — "Submit" alone
+# would also partially match the bottom "Submit review" button (Maestro's
+# plain-string text selector partial-matches by default).
+appId: com.camphubph.camper
+env:
+  MAESTRO_TEST_EMAIL: dummy@example.com
+  MAESTRO_TEST_PASSWORD: dummy-password
+---
+- launchApp
+- tapOn: "Log in"
+- tapOn: "name@example.com"
+- inputText: ${MAESTRO_TEST_EMAIL}
+- tapOn: "Your password"
+- inputText: ${MAESTRO_TEST_PASSWORD}
+- tapOn:
+    text: "Log in"
+    index: 1
+- tapOn: "Discover"
+- tapOn: "Camping Grounds"
+- tapOn: "Mt. Daraitan campsite"
+- tapOn: "Reviews"
+- tapOn: "Write a review"
+- assertVisible: "Write a Review"
+- tapOn: "^Submit$"
+- assertVisible: "Select a rating to submit your review."

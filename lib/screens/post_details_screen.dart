@@ -240,6 +240,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
           ),
           IconButton(
             key: const Key('sendCommentButton'),
+            tooltip: 'Send comment',
             onPressed: _submitComment,
             icon: const Icon(Icons.send),
           ),

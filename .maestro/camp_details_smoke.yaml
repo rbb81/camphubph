@@ -1,0 +1,27 @@
+# Camp Details is reached via Discover -> a category -> a camp result card.
+# See discover_smoke.yaml for the login-credential override instructions.
+#
+# Uses the "Camping Grounds" category's only camp (Mt. Daraitan campsite),
+# which already has 2 seeded reviews, so the Reviews tab isn't empty.
+appId: com.camphubph.camper
+env:
+  MAESTRO_TEST_EMAIL: dummy@example.com
+  MAESTRO_TEST_PASSWORD: dummy-password
+---
+- launchApp
+- tapOn: "Log in"
+- tapOn: "name@example.com"
+- inputText: ${MAESTRO_TEST_EMAIL}
+- tapOn: "Your password"
+- inputText: ${MAESTRO_TEST_PASSWORD}
+- tapOn:
+    text: "Log in"
+    index: 1
+- tapOn: "Discover"
+- tapOn: "Camping Grounds"
+- tapOn: "Mt. Daraitan campsite"
+- assertVisible: "Mt. Daraitan campsite"
+- assertVisible: "Tanay, Rizal"
+- assertVisible: "Add to Trip"
+- tapOn: "Reviews"
+- assertVisible: "Write a review"

@@ -281,6 +281,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen>
         ),
         floatingActionButton: FloatingActionButton(
           key: const Key('newPostButton'),
+          tooltip: 'New post',
           onPressed: _composePost,
           child: const Icon(Icons.add),
         ),

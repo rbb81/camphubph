@@ -1,0 +1,40 @@
+# Community Feed is reached via Communities -> a community card. See
+# home_smoke.yaml for the login-credential override instructions.
+#
+# Uses "Luzon Overlanders" — already joined, with seeded posts/rules/members,
+# so Feed/Rules/Members are all non-empty and the FAB opens the compose
+# sheet directly (no "join to post" gate).
+#
+# The final "^Post$" tap is regex-anchored for an exact match — "Post" alone
+# would also partially match the compose sheet's "Post to Luzon Overlanders"
+# heading (Maestro's plain-string text selector partial-matches by default).
+appId: com.camphubph.camper
+env:
+  MAESTRO_TEST_EMAIL: dummy@example.com
+  MAESTRO_TEST_PASSWORD: dummy-password
+---
+- launchApp
+- tapOn: "Log in"
+- tapOn: "name@example.com"
+- inputText: ${MAESTRO_TEST_EMAIL}
+- tapOn: "Your password"
+- inputText: ${MAESTRO_TEST_PASSWORD}
+- tapOn:
+    text: "Log in"
+    index: 1
+- tapOn: "Communities"
+- tapOn: "Luzon Overlanders"
+- assertVisible: "Feed"
+- assertVisible: "Rules"
+- assertVisible: "Members"
+- assertVisible: "Joined"
+- tapOn: "Rules"
+- assertVisible: "Tag trip reports with the route and vehicle type."
+- tapOn: "Members"
+- assertVisible: "Rico Fernandez"
+- tapOn: "Feed"
+- tapOn: "New post"
+- tapOn: "What's on your mind?"
+- inputText: "Anyone up for a Tanay run this weekend?"
+- tapOn: "^Post$"
+- assertVisible: "Anyone up for a Tanay run this weekend?"

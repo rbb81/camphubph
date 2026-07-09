@@ -104,8 +104,20 @@ Covers:
 - [`test/register_screen_test.dart`](test/register_screen_test.dart) — required-field errors, invalid email format, mismatched password/confirm password, and a fully valid submit succeeding via the dummy auth fallback
 - [`test/login_screen_test.dart`](test/login_screen_test.dart) — required-field errors, invalid email format, valid submit navigating to `/home` via the dummy auth fallback, navigation to `/forgot-password` and `/register`
 - [`test/forgot_password_screen_test.dart`](test/forgot_password_screen_test.dart) — empty/invalid email validation, valid submit succeeding via the dummy auth fallback, navigation back to `/login`
-- [`test/home_screen_test.dart`](test/home_screen_test.dart) — app bar/bottom tab bar render, mixed feed content renders, "coming soon" messages for unbuilt tabs/search/create-post
-- [`test/profile_screen_test.dart`](test/profile_screen_test.dart) — identity block and tab labels render, settings/follower-stat "coming soon" messages, switching tabs shows matching sample content, Edit Profile navigation
+- [`test/home_screen_test.dart`](test/home_screen_test.dart) — app bar/bottom tab bar render, mixed feed content renders, tap-through to Discover/Communities/Post Details/Camp Details/Create Post, "coming soon" for Map/search/notifications
+- [`test/discover_screen_test.dart`](test/discover_screen_test.dart) — category grid renders, tapping a category opens Camp Results
+- [`test/camp_results_screen_test.dart`](test/camp_results_screen_test.dart) — filtered results render, sort/rating filter sheet, tap-through to Camp Details, empty-filter state
+- [`test/camp_details_screen_test.dart`](test/camp_details_screen_test.dart) — identity block renders, bookmark toggle, Reviews tab (populated and empty states), writing a review updates the aggregate rating/count, Add to Trip pushes Schedule Trip and shows a confirmation
+- [`test/write_review_screen_test.dart`](test/write_review_screen_test.dart) — rating-required validation, pro/con chip add/remove, a fully valid submit
+- [`test/create_post_screen_test.dart`](test/create_post_screen_test.dart) — caption validation, optional location, a valid submit
+- [`test/post_details_screen_test.dart`](test/post_details_screen_test.dart) — post/comment thread renders, like toggle, adding a comment
+- [`test/communities_screen_test.dart`](test/communities_screen_test.dart) — Your/Suggested sections render, join/request-to-join/leave, private-community badge, tap-through to Community Feed, create-community flow inserts at the top
+- [`test/community_feed_screen_test.dart`](test/community_feed_screen_test.dart) — pinned posts, Rules/Members tabs, like toggle, compose (gated on membership), request-to-join → approval flow
+- [`test/create_community_screen_test.dart`](test/create_community_screen_test.dart) — name/description validation, Public/Private toggle, cancel pops null
+- [`test/schedule_trip_screen_test.dart`](test/schedule_trip_screen_test.dart) — missing-dates validation, an overlapping date range shows a named conflict error, a valid non-conflicting range pops a `Trip` and appends it to `sampleTrips`
+- [`test/trip_planner_screen_test.dart`](test/trip_planner_screen_test.dart) — seeded trips grouped into Upcoming/Past and sorted by date, tap-through "coming soon", empty state
+- [`test/trip_test.dart`](test/trip_test.dart) — pure unit tests for `Trip.rangesOverlap`/`Trip.findConflict`'s date-range overlap logic
+- [`test/profile_screen_test.dart`](test/profile_screen_test.dart) — identity block and tab labels render, settings/follower-stat "coming soon" messages, switching tabs shows matching sample content, Edit Profile and Trip Planner navigation
 - [`test/edit_profile_screen_test.dart`](test/edit_profile_screen_test.dart) — form pre-populates from the passed profile, name validation, style-chip toggling, avatar/cover picker buttons don't crash, Save pops with the edited profile
 - [`test/widget_test.dart`](test/widget_test.dart) — landing screen → registration navigation
 
@@ -155,14 +167,44 @@ On Windows, run that inside WSL or Git Bash, then make sure `~/.maestro/bin` (or
    maestro test .maestro/home_smoke.yaml
    ```
 
-   Home is only reachable after logging in. The flow's default credentials (`dummy@example.com` / `dummy-password`) work as-is against a build without `--dart-define-from-file`, since the dummy auth fallback accepts any credentials. Against a build with real Supabase credentials, override with a pre-existing, **email-confirmed** test account instead: `maestro test -e MAESTRO_TEST_EMAIL=you@example.com -e MAESTRO_TEST_PASSWORD=yourpassword .maestro/home_smoke.yaml`.
+   Home is only reachable after logging in. The flow's default credentials (`dummy@example.com` / `dummy-password`) work as-is against a build without `--dart-define-from-file`, since the dummy auth fallback accepts any credentials. Against a build with real Supabase credentials, override with a pre-existing, **email-confirmed** test account instead: `maestro test -e MAESTRO_TEST_EMAIL=you@example.com -e MAESTRO_TEST_PASSWORD=yourpassword .maestro/home_smoke.yaml`. All of the flows below share this same login requirement and credential-override mechanism.
 
    ```bash
    maestro test .maestro/profile_smoke.yaml
    maestro test .maestro/edit_profile_flow.yaml
    ```
 
-   Same login requirement and credential overrides as `home_smoke.yaml` above. `profile_smoke.yaml` logs in, taps into Profile from the bottom nav, and checks a tab switch; `edit_profile_flow.yaml` additionally opens Edit Profile, changes the name field, saves, and confirms the change is reflected back on Profile.
+   `profile_smoke.yaml` logs in, taps into Profile from the bottom nav, and checks a tab switch; `edit_profile_flow.yaml` additionally opens Edit Profile, changes the name field, saves, and confirms the change is reflected back on Profile.
+
+   ```bash
+   maestro test .maestro/discover_smoke.yaml
+   maestro test .maestro/camp_details_smoke.yaml
+   maestro test .maestro/write_review_flow.yaml
+   maestro test .maestro/schedule_trip_flow.yaml
+   ```
+
+   `discover_smoke.yaml` taps a category and checks the filtered results. `camp_details_smoke.yaml` continues into a camp's details and its Reviews tab. `write_review_flow.yaml` opens Write a Review and checks the rating-required validation error (the star-rating buttons have no text/tooltip label, so Maestro's text-based taps can't pick a star — the happy path is covered by the widget/chromedriver tests instead). `schedule_trip_flow.yaml` opens Schedule Trip from "Add to Trip", checks the missing-dates validation error, then drives the Material date picker via its "Switch to input" toggle to schedule a real date range and confirms it.
+
+   ```bash
+   maestro test .maestro/communities_smoke.yaml
+   maestro test .maestro/community_feed_smoke.yaml
+   maestro test .maestro/create_community_flow.yaml
+   ```
+
+   `communities_smoke.yaml` checks the Your/Suggested sections and joins a suggested community. `community_feed_smoke.yaml` opens an already-joined community, checks its Rules/Members tabs, and composes a post. `create_community_flow.yaml` checks name/description validation and the Public/Private toggle, then creates a community.
+
+   ```bash
+   maestro test .maestro/create_post_flow.yaml
+   maestro test .maestro/post_details_flow.yaml
+   ```
+
+   `create_post_flow.yaml` checks the caption-required validation error, then publishes a post (skipping the photo picker — it opens the real native gallery UI, which isn't reliably drivable). `post_details_flow.yaml` opens a seeded post and adds a comment.
+
+   ```bash
+   maestro test .maestro/trip_planner_smoke.yaml
+   ```
+
+   Opens Trip Planner from Profile and checks the seeded trips render under Upcoming/Past.
 
 3. To run every flow in the folder at once:
 
@@ -190,7 +232,7 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    chromedriver --port=4444
    ```
 
-3. In another terminal, run a flow. Every file below pumps its screen directly (no real login/navigation needed to reach it) and has been run against a real Chrome window in this environment (chromedriver 149.x) — **all 15 currently pass**:
+3. In another terminal, run a flow. Every file below has been run against a real Chrome window in this environment (chromedriver 149.x) — **all 18 currently pass**:
 
    ```bash
    flutter drive --driver=test_driver/integration_test.dart --target=integration_test/<file>.dart -d chrome
@@ -198,12 +240,13 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
 
    | File | Covers |
    | --- | --- |
-   | `register_test.dart`, `login_test.dart`, `forgot_password_test.dart` | Run **without** `--dart-define-from-file` on purpose — each asserts empty-form validation, then a fully valid submit succeeding via the dummy auth fallback (Supabase intentionally left unconfigured). |
-   | `home_test.dart` | Feed renders; search/create-post/tab-bar "coming soon" messages; like toggle; tap-through to Post Details, Camp Details, Discover. |
+   | `landing_test.dart`, `register_test.dart`, `login_test.dart`, `forgot_password_test.dart` | Boot the full app via `app.main()` (not a pumped single screen, unlike the rest of this table). `landing_test.dart` checks the brand/CTA and the "Log in" link. The other three run **without** `--dart-define-from-file` on purpose — each asserts empty-form validation, then a fully valid submit succeeding via the dummy auth fallback (Supabase intentionally left unconfigured). |
+   | `home_test.dart` | Feed renders; search/create-post/tab-bar "coming soon" messages; like toggle; tap-through to Post Details, Camp Details, Discover, Communities. |
    | `discover_test.dart`, `camp_results_test.dart` | Category grid renders; tapping a category filters to matching camps; tapping a result opens Camp Details. |
    | `camp_details_test.dart`, `write_review_test.dart` | Reviews tab renders; writing a review updates the aggregate rating/count live; review-form validation and pro/con chip add. |
+   | `schedule_trip_test.dart`, `trip_planner_test.dart` | Missing-dates and overlapping-range conflict validation; a valid range pops a `Trip` and appends it to `sampleTrips`; seeded trips render grouped/sorted on Trip Planner; a full round trip — schedule from Camp Details, confirm the snackbar, see it on a freshly-pumped Trip Planner. |
    | `create_post_test.dart`, `post_details_test.dart` | Caption validation and cancel; like toggle and adding a comment updates the thread. |
-   | `profile_test.dart`, `edit_profile_test.dart` | Identity block/tabs render, tab switching, Edit Profile navigation; form pre-populates and validates. |
+   | `profile_test.dart`, `edit_profile_test.dart` | Identity block/tabs render, tab switching, Edit Profile and Trip Planner navigation; form pre-populates and validates. |
    | `communities_test.dart`, `community_feed_test.dart`, `create_community_test.dart` | Your/Suggested sections, join/leave, tap-through to Community Feed, create-community flow; pinned posts, Rules/Members tabs, like toggle, compose; name/description validation and Public/Private toggle. |
 
    One run of `profile_test.dart` previously hit a transient `AppConnectionException` while waiting for the debug service to connect — a plain retry succeeded, so treat that as flaky rather than a real failure if it recurs.
@@ -243,8 +286,8 @@ lib/config/env.dart         reads SUPABASE_URL / SUPABASE_ANON_KEY
 lib/services/auth_service.dart  Supabase Auth, with a dummy fallback when unconfigured
 lib/theme/app_theme.dart    light/dark theme (nature-inspired palette)
 lib/widgets/auth_layout.dart shared layout for register/login/forgot-password
-lib/screens/                landing, auth, home, discover/camp results/camp details/write review, create post/post details, communities/community feed/create community, profile/edit profile screens
-lib/models/                 content types (HomeFeedItem, Camp, Review, Comment, Profile, Community, CommunityMember, CommunityPost)
+lib/screens/                landing, auth, home, discover/camp results/camp details/write review, schedule trip/trip planner, create post/post details, communities/community feed/create community, profile/edit profile screens
+lib/models/                 content types (HomeFeedItem, Camp, Review, Comment, Profile, Trip, Community, CommunityMember, CommunityPost)
 lib/data/                   placeholder sample content for every screen above (no matching Supabase schema yet)
 test/                       unit/widget tests
 integration_test/           Flutter driver end-to-end tests (web)

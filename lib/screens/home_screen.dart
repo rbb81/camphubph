@@ -131,6 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         key: const Key('createPostButton'),
+        tooltip: 'Create post',
         onPressed: _createPost,
         child: const Icon(Icons.add),
       ),
