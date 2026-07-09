@@ -8,6 +8,7 @@ sealed class HomeFeedItem {
 
 class FriendPostItem extends HomeFeedItem {
   const FriendPostItem({
+    required this.id,
     required this.authorName,
     required this.authorInitials,
     required this.timeAgo,
@@ -20,6 +21,7 @@ class FriendPostItem extends HomeFeedItem {
     this.comments = const [],
   });
 
+  final String id;
   final String authorName;
   final String authorInitials;
   final String timeAgo;
@@ -37,6 +39,7 @@ class FriendPostItem extends HomeFeedItem {
     bool? isLiked,
     List<Comment>? comments,
   }) => FriendPostItem(
+    id: id,
     authorName: authorName,
     authorInitials: authorInitials,
     timeAgo: timeAgo,

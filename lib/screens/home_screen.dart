@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../data/sample_camps.dart';
 import '../data/sample_communities.dart';
 import '../data/sample_feed.dart';
+import '../data/sample_notifications.dart';
 import '../data/sample_other_users.dart';
 import '../data/sample_profile.dart';
 import '../models/camp.dart';
@@ -13,6 +14,7 @@ import '../theme/app_theme.dart';
 import 'camp_details_screen.dart';
 import 'community_feed_screen.dart';
 import 'create_post_screen.dart';
+import 'notifications_screen.dart';
 import 'other_user_profile_screen.dart';
 import 'post_details_screen.dart';
 
@@ -26,10 +28,21 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late final List<HomeFeedItem> _feed = List.of(sampleHomeFeed);
 
+  int get _unreadNotificationCount =>
+      sampleNotifications.where((n) => !n.isRead).length;
+
   void _comingSoon(String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('$feature is coming soon.')),
     );
+  }
+
+  Future<void> _openNotifications() async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+    if (!mounted) return;
+    setState(() {});
   }
 
   Future<void> _createPost() async {
@@ -180,8 +193,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           IconButton(
             key: const Key('notificationsButton'),
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () => _comingSoon('Notifications'),
+            tooltip: 'Notifications',
+            icon: Badge(
+              label: Text('$_unreadNotificationCount'),
+              isLabelVisible: _unreadNotificationCount > 0,
+              child: const Icon(Icons.notifications_none),
+            ),
+            onPressed: _openNotifications,
           ),
         ],
       ),

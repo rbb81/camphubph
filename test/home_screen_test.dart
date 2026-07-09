@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:camper/data/sample_notifications.dart';
 import 'package:camper/data/sample_other_users.dart';
+import 'package:camper/models/app_notification.dart';
 import 'package:camper/models/followable_user.dart';
 import 'package:camper/screens/communities_screen.dart';
 import 'package:camper/screens/discover_screen.dart';
@@ -21,15 +23,20 @@ Future<void> pumpHomeScreen(WidgetTester tester) async {
 
 void main() {
   late List<FollowableUser> otherUsersSnapshot;
+  late List<AppNotification> notificationsSnapshot;
 
   setUp(() {
     otherUsersSnapshot = List.of(sampleOtherUsers);
+    notificationsSnapshot = List.of(sampleNotifications);
   });
 
   tearDown(() {
     sampleOtherUsers
       ..clear()
       ..addAll(otherUsersSnapshot);
+    sampleNotifications
+      ..clear()
+      ..addAll(notificationsSnapshot);
   });
 
   group('HomeScreen', () {
@@ -96,6 +103,16 @@ void main() {
     testWidgets('tapping a community post card opens its Community Feed', (
       tester,
     ) async {
+      // A partially-scrolled-into-view card's geometric center can still
+      // land behind the bottom nav bar (getCenter ignores clipping) —
+      // bump the test surface so the card is fully visible without
+      // needing to scroll at all, same fix used for sliver-heavy screens
+      // in other_user_profile_screen_test.dart.
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       await pumpHomeScreen(tester);
 
       await tester.tap(find.byKey(const Key('communityPostCard')).first);
@@ -270,6 +287,55 @@ void main() {
           ),
           findsOneWidget,
         );
+      },
+    );
+
+    testWidgets('the bell icon badge shows the unread notification count', (
+      tester,
+    ) async {
+      await pumpHomeScreen(tester);
+
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('notificationsButton')),
+          matching: find.text('4'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('tapping the bell navigates to Notifications', (
+      tester,
+    ) async {
+      await pumpHomeScreen(tester);
+
+      await tester.tap(find.byKey(const Key('notificationsButton')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Notifications'), findsOneWidget);
+    });
+
+    testWidgets(
+      'the badge count updates after marking all notifications read and popping back',
+      (tester) async {
+        await pumpHomeScreen(tester);
+
+        await tester.tap(find.byKey(const Key('notificationsButton')));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const Key('markAllReadButton')));
+        await tester.pump();
+
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+
+        final badge = tester.widget<Badge>(
+          find.descendant(
+            of: find.byKey(const Key('notificationsButton')),
+            matching: find.byType(Badge),
+          ),
+        );
+        expect(badge.isLabelVisible, isFalse);
       },
     );
   });

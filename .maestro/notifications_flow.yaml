@@ -1,0 +1,29 @@
+# Home is only reachable after logging in — see home_smoke.yaml for the
+# login-credential override instructions.
+#
+# "Accept"/"Decline" are anchored (^Accept$/^Decline$) since a plain-string
+# match would also hit "Accepted"/"Declined" once one of the two seeded
+# follow-request notifications is resolved — the same partial/regex-match
+# gotcha as "^Confirm$" in the reservations flow and "^Follow$" in
+# follow_and_message_flow.yaml.
+appId: com.camphubph.camper
+env:
+  MAESTRO_TEST_EMAIL: dummy@example.com
+  MAESTRO_TEST_PASSWORD: dummy-password
+---
+- launchApp
+- tapOn: "Log in"
+- tapOn: "name@example.com"
+- inputText: ${MAESTRO_TEST_EMAIL}
+- tapOn: "Your password"
+- inputText: ${MAESTRO_TEST_PASSWORD}
+- tapOn:
+    text: "Log in"
+    index: 1
+- tapOn: "Notifications"
+- assertVisible: "wants to follow you."
+- tapOn: "^Accept$"
+- assertVisible: "Accepted"
+- tapOn: "^Decline$"
+- assertVisible: "Declined"
+- tapOn: "Mark all as read"

@@ -56,6 +56,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
     Navigator.of(context).pop(
       FriendPostItem(
+        id: 'post_${DateTime.now().microsecondsSinceEpoch}',
         authorName: widget.author.name,
         authorInitials: widget.author.initials,
         timeAgo: 'Just now',

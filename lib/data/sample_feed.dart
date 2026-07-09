@@ -6,6 +6,7 @@ import '../models/home_feed_item.dart';
 /// return — see docs/ux/wireframes.md for the Home Feed content mix.
 final List<HomeFeedItem> sampleHomeFeed = [
   const FriendPostItem(
+    id: 'post_jasmine_sunrise',
     authorName: 'Jasmine Reyes',
     authorInitials: 'JR',
     timeAgo: '2h',
@@ -29,6 +30,31 @@ final List<HomeFeedItem> sampleHomeFeed = [
       ),
     ],
   ),
+  const FriendPostItem(
+    id: 'post_ana_daraitan',
+    authorName: 'Ana Dela Cruz',
+    authorInitials: 'AD',
+    timeAgo: '6h',
+    location: 'Mt. Daraitan campsite',
+    caption:
+        'First time back at Daraitan since the rainy season ended — river crossing was so much easier this time.',
+    likeCount: 18,
+    commentCount: 2,
+    comments: [
+      Comment(
+        authorName: 'Rico P.',
+        authorInitials: 'RP',
+        text: 'Taal Lake is criminally underrated for camping, but Daraitan is a classic too.',
+        timeAgo: '5h',
+      ),
+      Comment(
+        authorName: 'Ate Baby',
+        authorInitials: 'AB',
+        text: 'Miss this trail! Who was your guide this time?',
+        timeAgo: '1h',
+      ),
+    ],
+  ),
   const RecommendedCampItem(
     name: 'Mt. Daraitan campsite',
     location: 'Tanay, Rizal',
@@ -45,6 +71,7 @@ final List<HomeFeedItem> sampleHomeFeed = [
     'Pack a dry bag for river crossings — even a light drizzle can turn a trail muddy fast this time of year.',
   ),
   const FriendPostItem(
+    id: 'post_miguel_taal',
     authorName: 'Miguel Ibarra',
     authorInitials: 'MI',
     timeAgo: '5h',

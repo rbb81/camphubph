@@ -116,6 +116,7 @@ Legend: **Regions** (top to bottom or in layout order) → **Components** → **
 - **Components:** notification row (actor avatar, action description, timestamp, contextual thumbnail, unread indicator).
 - **States:** empty ("no notifications yet"), unread (visual emphasis), read.
 - **Primary actions:** tap → route to the relevant Post Details/Profile/Community Feed/Trip Detail, mark all as read.
+- **Implemented, narrower scope (Phase 3, 2026-07-09):** `lib/screens/notifications_screen.dart`, reached via the Home app bar bell icon (`lib/screens/home_screen.dart`, which now shows an unread-count `Badge`). Backed by `lib/models/app_notification.dart` (`NotificationType`: followRequest/like/comment) and `lib/data/sample_notifications.dart` — fixed seed data, not generated from live likes/comments during a session. Follow-request notifications model the current user being asked to follow *by* someone else (the reverse of the existing outgoing `FollowStatus`/`sampleOtherUsers` relationship) and are resolved entirely on the notification item itself, with inline Accept/Decline buttons. Like/comment notifications tap through to Post Details via a new `FriendPostItem.id` field; a lookup miss shows a snackbar instead of a broken screen. Not built: Today/This week/Earlier grouping (flat list only), routing to Profile/Community Feed/Trip Detail (only Post Details), contextual thumbnails, push notifications.
 
 ## Messages
 - **Regions:** inbox (thread list) → thread (message list + composer).

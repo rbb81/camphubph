@@ -7,6 +7,7 @@ import 'package:camper/models/home_feed_item.dart';
 import 'package:camper/screens/post_details_screen.dart';
 
 const _post = FriendPostItem(
+  id: 'post_test',
   authorName: 'Jasmine Reyes',
   authorInitials: 'JR',
   timeAgo: '2h',

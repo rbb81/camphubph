@@ -2,7 +2,7 @@
 
 Camper is a camping-community app for the Philippines — discover camps, share trips, and connect with other campers. Built with Flutter so the same codebase targets web, Android, and iOS. Product/UX planning docs live in [`docs/`](docs/).
 
-Currently implemented (see [docs/ux/wireframes.md](docs/ux/wireframes.md) for the full per-screen spec and status): registration, login, and forgot-password screens (responsive, web + mobile) wired to Supabase Auth; a Home Feed (mixed feed, create post, likes/comments, bottom tab bar); Discover → Camp Results → Camp Details (with a working Reviews/write-a-review flow); Communities → Community Feed, plus creating a new community with a public/private setting; and a Profile screen (own-profile view + Edit Profile form). All content screens render from static sample data (`lib/data/`) — there's no real Supabase schema for posts/camps/reviews/communities/profiles yet.
+Currently implemented (see [docs/ux/wireframes.md](docs/ux/wireframes.md) for the full per-screen spec and status): registration, login, and forgot-password screens (responsive, web + mobile) wired to Supabase Auth; a Home Feed (mixed feed, create post, likes/comments, bottom tab bar); Notifications (follow requests, likes, comments); Discover → Camp Results → Camp Details (with a working Reviews/write-a-review flow); Communities → Community Feed, plus creating a new community with a public/private setting; and a Profile screen (own-profile view + Edit Profile form). All content screens render from static sample data (`lib/data/`) — there's no real Supabase schema for posts/camps/reviews/communities/profiles/notifications yet.
 
 ## Prerequisites
 
@@ -70,7 +70,7 @@ The moment real credentials are provided, `AuthService` automatically switches b
 
 ## Home Feed
 
-[`lib/screens/home_screen.dart`](lib/screens/home_screen.dart) is the post-login destination — a mixed feed (friend posts, recommended camps, community posts, tips, suggested users) with a top bar (search/notifications, both stubbed) and a bottom tab bar. **Home** and **Profile** are implemented; **Discover**, **Map**, **Communities** still show a "coming soon" message, per [docs/ux/wireframes.md](docs/ux/wireframes.md).
+[`lib/screens/home_screen.dart`](lib/screens/home_screen.dart) is the post-login destination — a mixed feed (friend posts, recommended camps, community posts, tips, suggested users) with a top bar (search stubbed, notifications a working bell icon with an unread-count badge → [`lib/screens/notifications_screen.dart`](lib/screens/notifications_screen.dart)) and a bottom tab bar. **Home**, **Discover**, **Communities**, and **Profile** are implemented; **Map** still shows a "coming soon" message, per [docs/ux/wireframes.md](docs/ux/wireframes.md).
 
 There's no `posts`/`camps` schema in Supabase yet, so the feed renders from static sample data in [`lib/data/sample_feed.dart`](lib/data/sample_feed.dart) (modeled by [`lib/models/home_feed_item.dart`](lib/models/home_feed_item.dart)) rather than a real query — swap that out once the database schema exists.
 
@@ -107,7 +107,7 @@ Covers:
 - [`test/camp_owner_dashboard_screen_test.dart`](test/camp_owner_dashboard_screen_test.dart) — with no signed-in session renders demo placeholder business info (distinct from camper Profile — no Followers/Following); with a signed-in session renders the real campsite/host name and email; seeded reservations render; Confirm/Decline flips a pending reservation's status and updates `sampleReservations`; Add Reservation appends a new card; seeded message threads render with a last-message preview; opening a thread and replying as owner updates `sampleMessageThreads` and the preview
 - [`test/add_reservation_screen_test.dart`](test/add_reservation_screen_test.dart) — required-field validation, a fully valid submit pops a `Reservation` and appends it to `sampleReservations`
 - [`test/forgot_password_screen_test.dart`](test/forgot_password_screen_test.dart) — empty/invalid email validation, valid submit succeeding via the dummy auth fallback, navigation back to `/login`
-- [`test/home_screen_test.dart`](test/home_screen_test.dart) — app bar/bottom tab bar render, mixed feed content renders, tap-through to Discover/Communities/Post Details/Camp Details/Create Post, "coming soon" for Map/search/notifications, friend-post author and suggested-user tap-through to Other User Profile, requesting to follow a suggested user shows Requested then Following after auto-approval
+- [`test/home_screen_test.dart`](test/home_screen_test.dart) — app bar/bottom tab bar render, mixed feed content renders, tap-through to Discover/Communities/Post Details/Camp Details/Create Post, "coming soon" for Map/search, friend-post author and suggested-user tap-through to Other User Profile, requesting to follow a suggested user shows Requested then Following after auto-approval, the bell icon badge shows the unread notification count and navigates to Notifications, the badge updates after marking notifications read and popping back
 - [`test/other_user_profile_screen_test.dart`](test/other_user_profile_screen_test.dart) — identity block renders; Follow requests then auto-approves to Following; canceling a pending request reverts to Follow; Message reuses an existing thread or starts a new empty one; Posts tab renders this user's posts and taps through to Post Details (empty state for a user with none); Photos tab empty state; Reviews tab renders this user's reviews and taps through to Camp Details
 - [`test/discover_screen_test.dart`](test/discover_screen_test.dart) — category grid renders, tapping a category opens Camp Results
 - [`test/camp_results_screen_test.dart`](test/camp_results_screen_test.dart) — filtered results render, sort/rating filter sheet, tap-through to Camp Details, empty-filter state
@@ -116,6 +116,7 @@ Covers:
 - [`test/message_thread_screen_test.dart`](test/message_thread_screen_test.dart) — camper view of a camp thread shows the camp name as the title, owner view shows the guest name, a user-to-user thread shows the other person's name; empty-thread state; sending a message appends it, clears the composer, and updates `sampleMessageThreads`
 - [`test/create_post_screen_test.dart`](test/create_post_screen_test.dart) — caption validation, optional location, a valid submit
 - [`test/post_details_screen_test.dart`](test/post_details_screen_test.dart) — post/comment thread renders, like toggle, adding a comment
+- [`test/notifications_screen_test.dart`](test/notifications_screen_test.dart) — mixed read/unread rows render, Accept/Decline a follow request flips it to an Accepted/Declined chip, tapping a like/comment notification marks it read and opens Post Details, Mark all as read, empty state
 - [`test/communities_screen_test.dart`](test/communities_screen_test.dart) — Your/Suggested sections render, join/request-to-join/leave, private-community badge, tap-through to Community Feed, create-community flow inserts at the top
 - [`test/community_feed_screen_test.dart`](test/community_feed_screen_test.dart) — pinned posts, Rules/Members tabs, like toggle, compose (gated on membership), request-to-join → approval flow
 - [`test/create_community_screen_test.dart`](test/create_community_screen_test.dart) — name/description validation, Public/Private toggle, cancel pops null
@@ -226,6 +227,12 @@ On Windows, run that inside WSL or Git Bash, then make sure `~/.maestro/bin` (or
    `trip_planner_smoke.yaml` opens Trip Planner from Profile, checks the seeded trips render under Upcoming/Past, then opens one and checks its details render. `trip_details_flow.yaml` continues further — cancels that trip and confirms it's removed from the list.
 
    ```bash
+   maestro test .maestro/notifications_flow.yaml
+   ```
+
+   Opens Notifications from Home's bell icon, checks a seeded follow request renders, accepts it (flips to an "Accepted" chip), declines the other seeded request (flips to "Declined"), then taps "Mark all as read". `^Accept$`/`^Decline$` are regex-anchored since once one request is resolved, its own chip text ("Accepted"/"Declined") would otherwise partially match the other still-pending button.
+
+   ```bash
    maestro test .maestro/camp_owner_register_flow.yaml
    maestro test .maestro/camp_owner_dashboard_smoke.yaml
    ```
@@ -264,7 +271,7 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    chromedriver --port=4444
    ```
 
-3. In another terminal, run a flow. Every file below has been run against a real Chrome window in this environment (chromedriver 149.x) — **all 22 currently pass**:
+3. In another terminal, run a flow. Every file below has been run against a real Chrome window in this environment (chromedriver 149.x) — **all 23 currently pass**:
 
    ```bash
    flutter drive --driver=test_driver/integration_test.dart --target=integration_test/<file>.dart -d chrome
@@ -281,6 +288,7 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    | `other_user_profile_test.dart` | Pumps `OtherUserProfileScreen` directly (same pattern as `home_test.dart`); renders the identity block; requesting to follow flips to Requested then Following after a real (non-simulated) delay; Message opens a thread and a sent message appears; Reviews tab renders this user's reviews and taps through to Camp Details. |
    | `schedule_trip_test.dart`, `trip_planner_test.dart`, `trip_details_test.dart` | Missing-dates and overlapping-range conflict validation; a valid range pops a `Trip` and appends it to `sampleTrips`; seeded trips render grouped/sorted on Trip Planner; a full round trip — schedule from Camp Details, confirm the snackbar, see it on a freshly-pumped Trip Planner; canceling a trip from Trip Details removes it from the list; Trip Details' View Camp opens Camp Details for the same camp. |
    | `create_post_test.dart`, `post_details_test.dart` | Caption validation and cancel; like toggle and adding a comment updates the thread. |
+   | `notifications_test.dart` | Pumps `NotificationsScreen` directly (same pattern as `home_test.dart`); seeded notifications render; accepting a follow request shows an Accepted chip; tapping a like notification opens Post Details; Mark all as read clears the unread indicators. |
    | `profile_test.dart`, `edit_profile_test.dart` | Identity block/tabs render, tab switching, Edit Profile and Trip Planner navigation; form pre-populates and validates. |
    | `communities_test.dart`, `community_feed_test.dart`, `create_community_test.dart` | Your/Suggested sections, join/leave, tap-through to Community Feed, create-community flow; pinned posts, Rules/Members tabs, like toggle, compose; name/description validation and Public/Private toggle. |
 
@@ -321,8 +329,8 @@ lib/config/env.dart         reads SUPABASE_URL / SUPABASE_ANON_KEY
 lib/services/auth_service.dart  Supabase Auth, with a dummy fallback when unconfigured
 lib/theme/app_theme.dart    light/dark theme (nature-inspired palette)
 lib/widgets/auth_layout.dart shared layout for register/login/forgot-password
-lib/screens/                landing, auth, home, discover/camp results/camp details/write review, schedule trip/trip planner/trip details, create post/post details, communities/community feed/create community, profile/edit profile screens
-lib/models/                 content types (HomeFeedItem, Camp, Review, Comment, Profile, Trip, Community, CommunityMember, CommunityPost)
+lib/screens/                landing, auth, home, notifications, discover/camp results/camp details/write review, schedule trip/trip planner/trip details, create post/post details, communities/community feed/create community, profile/edit profile screens
+lib/models/                 content types (HomeFeedItem, AppNotification, Camp, Review, Comment, Profile, Trip, Community, CommunityMember, CommunityPost)
 lib/data/                   placeholder sample content for every screen above (no matching Supabase schema yet)
 test/                       unit/widget tests
 integration_test/           Flutter driver end-to-end tests (web)
