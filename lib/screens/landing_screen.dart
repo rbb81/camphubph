@@ -73,6 +73,20 @@ class LandingScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 32),
+                  Center(
+                    child: TextButton.icon(
+                      key: const Key('previewCampOwnerButton'),
+                      onPressed: () =>
+                          Navigator.of(context).pushNamed('/owner-home'),
+                      icon: const Icon(Icons.construction, size: 16),
+                      label: const Text('Preview Camp Owner View (test)'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.grey,
+                        textStyle: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

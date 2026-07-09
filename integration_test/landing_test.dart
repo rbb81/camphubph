@@ -36,5 +36,18 @@ void main() {
 
       expect(find.text('name@example.com'), findsOneWidget);
     });
+
+    testWidgets(
+      'the "Preview Camp Owner View (test)" button reaches the dashboard',
+      (tester) async {
+        await app.main();
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Preview Camp Owner View (test)'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Daraitan Basecamp'), findsOneWidget);
+      },
+    );
   });
 }

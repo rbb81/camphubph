@@ -30,4 +30,5 @@ appId: com.camphubph.camper
     text: "Log in"
     index: 1
 - assertVisible: "Camp Owner Dashboard"
-- assertVisible: "Welcome, camp owner!"
+- assertVisible: "Daraitan Basecamp"
+- assertVisible: "Reservations"

@@ -2,24 +2,132 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
+import 'package:camper/data/sample_reservations.dart';
+import 'package:camper/models/reservation.dart';
 import 'package:camper/screens/camp_owner_dashboard_screen.dart';
 
-// Normally reached after a camp-owner login, which is exercised end to end
-// in integration_test/login_test.dart. Pumped directly here so this screen
+// Normally reached after a camp-owner login (see integration_test/login_test.dart)
+// or the Landing screen's "Preview Camp Owner View (test)" shortcut (see
+// integration_test/landing_test.dart). Pumped directly here so this screen
 // also gets its own real-browser chromedriver smoke test, matching the
 // pattern in integration_test/home_test.dart.
+Future<void> pumpDashboard(WidgetTester tester) async {
+  await tester.pumpWidget(
+    const MaterialApp(home: CampOwnerDashboardScreen()),
+  );
+  await tester.pumpAndSettle();
+}
+
+String _fmt(DateTime d) =>
+    '${d.month.toString().padLeft(2, '0')}/${d.day.toString().padLeft(2, '0')}/${d.year}';
+
+Future<void> _pickDate(WidgetTester tester, Key fieldKey, DateTime date) async {
+  await tester.tap(find.byKey(fieldKey));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byTooltip('Switch to input'));
+  await tester.pumpAndSettle();
+  await tester.enterText(find.byType(TextField).last, _fmt(date));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('OK'));
+  await tester.pumpAndSettle();
+}
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Camp Owner Dashboard (real browser)', () {
-    testWidgets('renders the welcome content', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: CampOwnerDashboardScreen()),
+    late List<Reservation> reservationsSnapshot;
+
+    setUp(() {
+      reservationsSnapshot = List.of(sampleReservations);
+    });
+
+    tearDown(() {
+      sampleReservations
+        ..clear()
+        ..addAll(reservationsSnapshot);
+    });
+
+    testWidgets('renders the business header and seeded reservations', (
+      tester,
+    ) async {
+      await pumpDashboard(tester);
+
+      expect(find.text('Daraitan Basecamp'), findsOneWidget);
+      expect(find.text('Camp Owner'), findsOneWidget);
+      expect(find.text('Miguel Santos'), findsOneWidget);
+      expect(find.text('Reservations'), findsOneWidget);
+    });
+
+    testWidgets('confirming a pending reservation flips its status', (
+      tester,
+    ) async {
+      await pumpDashboard(tester);
+
+      await tester.tap(
+        find.byKey(const Key('confirmReservationButton_res_seed_pending_1')),
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Camp Owner Dashboard'), findsOneWidget);
-      expect(find.text('Welcome, camp owner!'), findsOneWidget);
+      expect(
+        sampleReservations
+            .firstWhere((r) => r.id == 'res_seed_pending_1')
+            .status,
+        ReservationStatus.confirmed,
+      );
+    });
+
+    testWidgets('declining a pending reservation flips its status', (
+      tester,
+    ) async {
+      await pumpDashboard(tester);
+
+      await tester.tap(
+        find.byKey(const Key('declineReservationButton_res_seed_pending_1')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        sampleReservations
+            .firstWhere((r) => r.id == 'res_seed_pending_1')
+            .status,
+        ReservationStatus.declined,
+      );
+    });
+
+    testWidgets('adding a reservation appends it to the list', (
+      tester,
+    ) async {
+      final today = DateTime.now();
+      final base = DateTime(today.year, today.month, today.day);
+      final checkIn = base.add(const Duration(days: 60));
+      final checkOut = base.add(const Duration(days: 62));
+
+      await pumpDashboard(tester);
+
+      await tester.tap(find.byKey(const Key('addReservationButton')));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('guestNameField')),
+        'Chromedriver Guest',
+      );
+      await tester.tap(find.byKey(const Key('campField')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Taal Lake shoreline').last);
+      await tester.pumpAndSettle();
+
+      await _pickDate(tester, const Key('checkInField'), checkIn);
+      await _pickDate(tester, const Key('checkOutField'), checkOut);
+
+      await tester.tap(find.byKey(const Key('submitReservationButton')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Chromedriver Guest'), findsOneWidget);
+      expect(
+        sampleReservations.any((r) => r.guestName == 'Chromedriver Guest'),
+        isTrue,
+      );
     });
   });
 }

@@ -16,4 +16,16 @@ void main() {
 
     expect(find.text('Start planning your next camping trip.'), findsOneWidget);
   });
+
+  testWidgets(
+    'Landing screen preview button navigates to the Camp Owner Dashboard',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(const CamperApp());
+
+      await tester.tap(find.text('Preview Camp Owner View (test)'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Daraitan Basecamp'), findsOneWidget);
+    },
+  );
 }

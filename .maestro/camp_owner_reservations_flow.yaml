@@ -1,0 +1,31 @@
+# Exercises the Camp Owner Dashboard's Reservations feature via the
+# Landing screen's "Preview Camp Owner View (test)" shortcut, which skips
+# register/login entirely. Confirms a seeded pending reservation, then adds
+# a new manual reservation via the FAB form. Drives the Material date
+# picker the same way as schedule_trip_flow.yaml (unverified here
+# specifically since this repo has no Android/iOS emulator yet).
+#
+# "Confirm" is anchored (^Confirm$) since a plain-string match would also
+# hit the seeded "Confirmed" status chip text (partial/regex match, same
+# gotcha documented in the other Maestro flows in this repo).
+appId: com.camphubph.camper
+---
+- launchApp
+- tapOn: "Preview Camp Owner View (test)"
+- assertVisible: "Reservations"
+- tapOn: "^Confirm$"
+- tapOn: "Add Reservation"
+- tapOn: "Jasmine Reyes"
+- inputText: "Maestro Guest"
+- tapOn: "Select a camp"
+- tapOn: "Mt. Daraitan campsite"
+- tapOn: "Select check-in date"
+- tapOn: "Switch to input"
+- inputText: "01/15/2027"
+- tapOn: "OK"
+- tapOn: "Select check-out date"
+- tapOn: "Switch to input"
+- inputText: "01/17/2027"
+- tapOn: "OK"
+- tapOn: "^Save$"
+- assertVisible: "Maestro Guest"

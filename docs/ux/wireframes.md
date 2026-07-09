@@ -33,11 +33,11 @@ Legend: **Regions** (top to bottom or in layout order) → **Components** → **
 - **Implemented (Phase 3, 2026-07-09):** `lib/screens/register_screen.dart` gained an "I am a" `SegmentedButton` (Camper / Camp Owner, defaults to Camper) above the Full name field — the selected `UserRole` is stored on the account (`user_metadata.role` for real Supabase, an in-memory map keyed by email in dummy mode) and read back at login to route to the right destination. No interest-picker step yet; success still shows the "Check your email" confirmation panel regardless of account type.
 
 ## Camp Owner Dashboard
-- **Regions:** app bar, centered welcome panel.
-- **Components:** icon, "Welcome, camp owner!" heading, body text.
-- **States:** default only.
-- **Primary actions:** none yet.
-- **Implemented (Phase 3, 2026-07-09):** `lib/screens/camp_owner_dashboard_screen.dart` — a minimal stub, the post-login destination for accounts registered with the Camp Owner account type. Not yet built: any actual listing/booking/guest-management tools, or a way to switch back to a camper view.
+- **Regions:** app bar, business-identity header, Reservations section, floating "Add Reservation" action.
+- **Components:** icon-badge business header (business name, host name, "Camp Owner" chip — no cover photo/avatar/follower stats, deliberately distinct from the camper Profile header), reservation card (guest name, camp name, date range, status chip), Confirm/Decline buttons (pending only), Add Reservation form (guest name, camp dropdown, check-in/check-out date pickers, pending/confirmed toggle).
+- **States:** empty (no reservations yet), pending/confirmed/declined per reservation.
+- **Primary actions:** confirm a pending reservation, decline a pending reservation, add a manual reservation (walk-in/phone booking).
+- **Implemented (Phase 3, 2026-07-09):** `lib/screens/camp_owner_dashboard_screen.dart`, the post-login destination for accounts registered with the Camp Owner account type (also reachable directly from Landing's "Preview Camp Owner View (test)" button, bypassing register/login for manual testing). Lists sample reservations from `lib/data/sample_reservations.dart` (a fixed, sample-data-only list — no real `camps`/`reservations` Supabase schema, no `ownerId` linkage on `Camp`, no multi-owner account model) with immediate Confirm/Decline actions and an "Add Reservation" flow (`lib/screens/add_reservation_screen.dart`). Out of scope: payments/checkout, real booking-capacity/conflict enforcement, a persistent camp-owner business profile, and any way to manage actual camp listings or switch back to a camper view — this stays a lightweight reservation *log*, not the deferred marketplace/booking feature described in `docs/PRD.md`.
 
 ## Forgot Password
 - **Regions:** form (center), back link.
