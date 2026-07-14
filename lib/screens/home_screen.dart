@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 import '../data/sample_camps.dart';
 import '../data/sample_communities.dart';
 import '../data/sample_feed.dart';
@@ -90,6 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
         distanceKm: item.distanceKm,
         priceLevel: 1,
         description: 'No description available yet for this camp.',
+        coordinates: const LatLng(12.8797, 121.7740),
       ),
     );
     Navigator.of(
@@ -227,9 +229,12 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: 0,
         type: BottomNavigationBarType.fixed,
         onTap: (index) {
-          const labels = ['Home', 'Discover', 'Map', 'Communities', 'Profile'];
           if (index == 1) {
             Navigator.of(context).pushNamed('/discover');
+            return;
+          }
+          if (index == 2) {
+            Navigator.of(context).pushNamed('/map');
             return;
           }
           if (index == 3) {
@@ -240,7 +245,6 @@ class _HomeScreenState extends State<HomeScreen> {
             Navigator.of(context).pushNamed('/profile');
             return;
           }
-          if (index != 0) _comingSoon(labels[index]);
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 
 import '../data/sample_message_threads.dart';
 import '../data/sample_profile.dart';
@@ -8,6 +9,7 @@ import '../models/message_thread.dart';
 import '../models/review.dart';
 import '../models/trip.dart';
 import '../theme/app_theme.dart';
+import 'map_screen.dart';
 import 'message_thread_screen.dart';
 import 'schedule_trip_screen.dart';
 import 'write_review_screen.dart';
@@ -42,12 +44,6 @@ class _CampDetailsScreenState extends State<CampDetailsScreen>
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  void _comingSoon(String feature) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('$feature is coming soon.')));
   }
 
   void _toggleSave() {
@@ -149,7 +145,12 @@ class _CampDetailsScreenState extends State<CampDetailsScreen>
                         ),
                         _PhotosTab(reviews: _reviews),
                         _MapTab(
-                          onOpenFullMap: () => _comingSoon('Full map view'),
+                          camp: _camp,
+                          onOpenFullMap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => MapScreen(focusCampId: _camp.id),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -650,30 +651,58 @@ class _PhotosTab extends StatelessWidget {
 }
 
 class _MapTab extends StatelessWidget {
-  const _MapTab({required this.onOpenFullMap});
+  const _MapTab({required this.camp, required this.onOpenFullMap});
 
+  final Camp camp;
   final VoidCallback onOpenFullMap;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.map_outlined, size: 48, color: Colors.grey),
-          const SizedBox(height: 12),
-          const Text(
-            'Full map view is coming soon.',
-            style: TextStyle(color: Colors.grey),
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: SizedBox(
+            height: 220,
+            child: FlutterMap(
+              options: MapOptions(
+                initialCenter: camp.coordinates,
+                initialZoom: 13,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
+                ),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.camphubph.camper',
+                ),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: camp.coordinates,
+                      width: 40,
+                      height: 40,
+                      child: const Icon(
+                        Icons.location_on,
+                        size: 36,
+                        color: AppColors.brand,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          OutlinedButton(
-            key: const Key('viewOnMapButton'),
-            onPressed: onOpenFullMap,
-            child: const Text('View on Map'),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 12),
+        OutlinedButton(
+          key: const Key('viewOnMapButton'),
+          onPressed: onOpenFullMap,
+          child: const Text('View on Map'),
+        ),
+      ],
     );
   }
 }

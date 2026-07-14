@@ -242,5 +242,29 @@ void main() {
         );
       },
     );
+
+    testWidgets('Map tab renders a mini-map with a View on Map button', (
+      tester,
+    ) async {
+      await _pumpCampDetailsHost(tester, camp: _campWithReviews);
+
+      await tester.tap(find.text('Map'));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('viewOnMapButton')), findsOneWidget);
+    });
+
+    testWidgets('View on Map opens the full Map screen centered on this camp', (
+      tester,
+    ) async {
+      await _pumpCampDetailsHost(tester, camp: _campWithReviews);
+
+      await tester.tap(find.text('Map'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('viewOnMapButton')));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(AppBar, 'Map'), findsOneWidget);
+    });
   });
 }

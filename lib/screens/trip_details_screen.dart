@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../data/sample_camps.dart';
 import '../data/sample_trips.dart';
@@ -27,6 +28,7 @@ class TripDetailsScreen extends StatelessWidget {
       distanceKm: 0,
       priceLevel: 1,
       description: 'No description available yet for this camp.',
+      coordinates: const LatLng(12.8797, 121.7740),
     ),
   );
 

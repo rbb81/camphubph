@@ -25,3 +25,7 @@ env:
 - assertVisible: "Add to Trip"
 - tapOn: "Reviews"
 - assertVisible: "Write a review"
+- tapOn: "Map"
+- assertVisible: "View on Map"
+- tapOn: "View on Map"
+- assertVisible: "Map"

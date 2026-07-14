@@ -8,6 +8,7 @@ import 'screens/forgot_password_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/landing_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/map_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/trip_planner_screen.dart';
@@ -46,6 +47,7 @@ class CamperApp extends StatelessWidget {
         '/home': (context) => const HomeScreen(),
         '/owner-home': (context) => const CampOwnerDashboardScreen(),
         '/discover': (context) => const DiscoverScreen(),
+        '/map': (context) => const MapScreen(),
         '/communities': (context) => const CommunitiesScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/trips': (context) => const TripPlannerScreen(),

@@ -2,7 +2,7 @@
 
 Camper is a camping-community app for the Philippines — discover camps, share trips, and connect with other campers. Built with Flutter so the same codebase targets web, Android, and iOS. Product/UX planning docs live in [`docs/`](docs/).
 
-Currently implemented (see [docs/ux/wireframes.md](docs/ux/wireframes.md) for the full per-screen spec and status): registration, login, and forgot-password screens (responsive, web + mobile) wired to Supabase Auth; a Home Feed (mixed feed, create post, likes/comments, bottom tab bar); Notifications (follow requests, likes, comments); Discover → Camp Results → Camp Details (with a working Reviews/write-a-review flow); Communities → Community Feed, plus creating a new community with a public/private setting; and a Profile screen (own-profile view + Edit Profile form). All content screens render from static sample data (`lib/data/`) — there's no real Supabase schema for posts/camps/reviews/communities/profiles/notifications yet.
+Currently implemented (see [docs/ux/wireframes.md](docs/ux/wireframes.md) for the full per-screen spec and status): registration, login, and forgot-password screens (responsive, web + mobile) wired to Supabase Auth; a Home Feed (mixed feed, create post, likes/comments, bottom tab bar); Notifications (follow requests, likes, comments); Discover → Camp Results → Camp Details (with a working Reviews/write-a-review flow); a Map screen showing a pin for every campsite (OpenStreetMap via `flutter_map`, no API key needed); Communities → Community Feed, plus creating a new community with a public/private setting; and a Profile screen (own-profile view + Edit Profile form). All content screens render from static sample data (`lib/data/`) — there's no real Supabase schema for posts/camps/reviews/communities/profiles/notifications yet.
 
 ## Prerequisites
 
@@ -70,7 +70,11 @@ The moment real credentials are provided, `AuthService` automatically switches b
 
 ## Home Feed
 
-[`lib/screens/home_screen.dart`](lib/screens/home_screen.dart) is the post-login destination — a mixed feed (friend posts, recommended camps, community posts, tips, suggested users) with a top bar (search stubbed, notifications a working bell icon with an unread-count badge → [`lib/screens/notifications_screen.dart`](lib/screens/notifications_screen.dart)) and a bottom tab bar. **Home**, **Discover**, **Communities**, and **Profile** are implemented; **Map** still shows a "coming soon" message, per [docs/ux/wireframes.md](docs/ux/wireframes.md).
+[`lib/screens/home_screen.dart`](lib/screens/home_screen.dart) is the post-login destination — a mixed feed (friend posts, recommended camps, community posts, tips, suggested users) with a top bar (search stubbed, notifications a working bell icon with an unread-count badge → [`lib/screens/notifications_screen.dart`](lib/screens/notifications_screen.dart)) and a bottom tab bar. All five tabs — **Home**, **Discover**, **Map**, **Communities**, and **Profile** — are implemented, per [docs/ux/wireframes.md](docs/ux/wireframes.md).
+
+## Map
+
+[`lib/screens/map_screen.dart`](lib/screens/map_screen.dart) shows a pin for every campsite in [`lib/data/sample_camps.dart`](lib/data/sample_camps.dart), centered on the Philippines. Built with [`flutter_map`](https://pub.dev/packages/flutter_map) + OpenStreetMap tiles + [`latlong2`](https://pub.dev/packages/latlong2) — no API key or billing account needed, unlike the Google Maps integration originally named in `docs/PRD.md`. Tapping a pin opens a bottom-sheet preview (name, location, rating) with a "View Details" button that pushes Camp Details. Reached via the bottom nav's **Map** tab, or via Camp Details' Map tab "View on Map" button (which centers/highlights that camp). No filters, device geolocation/"current location" recentering, or marker clustering (unnecessary at only 12 pins).
 
 There's no `posts`/`camps` schema in Supabase yet, so the feed renders from static sample data in [`lib/data/sample_feed.dart`](lib/data/sample_feed.dart) (modeled by [`lib/models/home_feed_item.dart`](lib/models/home_feed_item.dart)) rather than a real query — swap that out once the database schema exists.
 
@@ -107,11 +111,12 @@ Covers:
 - [`test/camp_owner_dashboard_screen_test.dart`](test/camp_owner_dashboard_screen_test.dart) — with no signed-in session renders demo placeholder business info (distinct from camper Profile — no Followers/Following); with a signed-in session renders the real campsite/host name and email; seeded reservations render; Confirm/Decline flips a pending reservation's status and updates `sampleReservations`; Add Reservation appends a new card; seeded message threads render with a last-message preview; opening a thread and replying as owner updates `sampleMessageThreads` and the preview
 - [`test/add_reservation_screen_test.dart`](test/add_reservation_screen_test.dart) — required-field validation, a fully valid submit pops a `Reservation` and appends it to `sampleReservations`
 - [`test/forgot_password_screen_test.dart`](test/forgot_password_screen_test.dart) — empty/invalid email validation, valid submit succeeding via the dummy auth fallback, navigation back to `/login`
-- [`test/home_screen_test.dart`](test/home_screen_test.dart) — app bar/bottom tab bar render, mixed feed content renders, tap-through to Discover/Communities/Post Details/Camp Details/Create Post, "coming soon" for Map/search, friend-post author and suggested-user tap-through to Other User Profile, requesting to follow a suggested user shows Requested then Following after auto-approval, the bell icon badge shows the unread notification count and navigates to Notifications, the badge updates after marking notifications read and popping back
+- [`test/home_screen_test.dart`](test/home_screen_test.dart) — app bar/bottom tab bar render, mixed feed content renders, tap-through to Discover/Map/Communities/Post Details/Camp Details/Create Post, "coming soon" for search, friend-post author and suggested-user tap-through to Other User Profile, requesting to follow a suggested user shows Requested then Following after auto-approval, the bell icon badge shows the unread notification count and navigates to Notifications, the badge updates after marking notifications read and popping back
 - [`test/other_user_profile_screen_test.dart`](test/other_user_profile_screen_test.dart) — identity block renders; Follow requests then auto-approves to Following; canceling a pending request reverts to Follow; Message reuses an existing thread or starts a new empty one; Posts tab renders this user's posts and taps through to Post Details (empty state for a user with none); Photos tab empty state; Reviews tab renders this user's reviews and taps through to Camp Details
 - [`test/discover_screen_test.dart`](test/discover_screen_test.dart) — category grid renders, tapping a category opens Camp Results
 - [`test/camp_results_screen_test.dart`](test/camp_results_screen_test.dart) — filtered results render, sort/rating filter sheet, tap-through to Camp Details, empty-filter state
-- [`test/camp_details_screen_test.dart`](test/camp_details_screen_test.dart) — identity block renders, bookmark toggle, Reviews tab (populated and empty states), writing a review updates the aggregate rating/count, Add to Trip pushes Schedule Trip and shows a confirmation, Message Campsite reuses an existing thread or starts a new empty one
+- [`test/camp_details_screen_test.dart`](test/camp_details_screen_test.dart) — identity block renders, bookmark toggle, Reviews tab (populated and empty states), writing a review updates the aggregate rating/count, Add to Trip pushes Schedule Trip and shows a confirmation, Message Campsite reuses an existing thread or starts a new empty one, Map tab renders a mini-map with a working "View on Map" button that opens the full Map screen centered on that camp
+- [`test/map_screen_test.dart`](test/map_screen_test.dart) — renders one marker per sample camp, tapping a marker opens a preview bottom sheet with that camp's name/location/rating, "View Details" navigates to Camp Details, opening with a `focusCampId` doesn't throw
 - [`test/write_review_screen_test.dart`](test/write_review_screen_test.dart) — rating-required validation, pro/con chip add/remove, a fully valid submit
 - [`test/message_thread_screen_test.dart`](test/message_thread_screen_test.dart) — camper view of a camp thread shows the camp name as the title, owner view shows the guest name, a user-to-user thread shows the other person's name; empty-thread state; sending a message appends it, clears the composer, and updates `sampleMessageThreads`
 - [`test/create_post_screen_test.dart`](test/create_post_screen_test.dart) — caption validation, optional location, a valid submit
@@ -188,9 +193,10 @@ On Windows, run that inside WSL or Git Bash, then make sure `~/.maestro/bin` (or
    maestro test .maestro/camp_details_smoke.yaml
    maestro test .maestro/write_review_flow.yaml
    maestro test .maestro/schedule_trip_flow.yaml
+   maestro test .maestro/map_smoke.yaml
    ```
 
-   `discover_smoke.yaml` taps a category and checks the filtered results. `camp_details_smoke.yaml` continues into a camp's details and its Reviews tab. `write_review_flow.yaml` opens Write a Review and checks the rating-required validation error (the star-rating buttons have no text/tooltip label, so Maestro's text-based taps can't pick a star — the happy path is covered by the widget/chromedriver tests instead). `schedule_trip_flow.yaml` opens Schedule Trip from "Add to Trip", checks the missing-dates validation error, then drives the Material date picker via its "Switch to input" toggle to schedule a real date range and confirms it.
+   `discover_smoke.yaml` taps a category and checks the filtered results. `camp_details_smoke.yaml` continues into a camp's details, its Reviews tab, and its Map tab (checks the "View on Map" button opens the full Map screen). `write_review_flow.yaml` opens Write a Review and checks the rating-required validation error (the star-rating buttons have no text/tooltip label, so Maestro's text-based taps can't pick a star — the happy path is covered by the widget/chromedriver tests instead). `schedule_trip_flow.yaml` opens Schedule Trip from "Add to Trip", checks the missing-dates validation error, then drives the Material date picker via its "Switch to input" toggle to schedule a real date range and confirms it. `map_smoke.yaml` opens Map from the bottom nav and taps a pin by its Tooltip label (map markers are icon-only, same limitation as the star-rating buttons — see the flow's own comment on why this specific step is unverified) through to Camp Details.
 
    ```bash
    maestro test .maestro/message_campsite_flow.yaml
@@ -271,7 +277,7 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    chromedriver --port=4444
    ```
 
-3. In another terminal, run a flow. Every file below has been run against a real Chrome window in this environment (chromedriver 149.x) — **all 23 currently pass**:
+3. In another terminal, run a flow. Every file below has been run against a real Chrome window in this environment (chromedriver 150.x) — **all 24 currently pass**:
 
    ```bash
    flutter drive --driver=test_driver/integration_test.dart --target=integration_test/<file>.dart -d chrome
@@ -280,10 +286,11 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    | File | Covers |
    | --- | --- |
    | `landing_test.dart`, `register_test.dart`, `login_test.dart`, `forgot_password_test.dart` | Boot the full app via `app.main()` (not a pumped single screen, unlike the rest of this table). `landing_test.dart` checks the brand/CTA, the "Log in" link, and the "Preview Camp Owner View (test)" button reaching the dashboard. The other three run **without** `--dart-define-from-file` on purpose — each asserts empty-form validation, then a fully valid submit succeeding via the dummy auth fallback (Supabase intentionally left unconfigured). `register_test.dart` also submits with the Camp Owner account-type segment selected (including the Campsite name field); `login_test.dart` also signs up a Camp Owner account (with a campsite name) directly via `AuthService` then logs in through the UI, confirming it routes to the Camp Owner Dashboard and renders the real campsite/host info instead of the demo placeholder. |
-   | `home_test.dart` | Feed renders; search/create-post/tab-bar "coming soon" messages; like toggle; tap-through to Post Details, Camp Details, Discover, Communities; tapping a friend-post author opens Other User Profile. |
+   | `home_test.dart` | Feed renders; search "coming soon" message; create-post opens Create Post; like toggle; tap-through to Post Details, Camp Details, Discover, Map, Communities; tapping a friend-post author opens Other User Profile. |
    | `camp_owner_dashboard_test.dart` | Pumps `CampOwnerDashboardScreen` directly (sidesteps login-gating, same as `home_test.dart`); with no session renders the demo placeholder business info, with a session set on `AuthService` renders the real campsite/host name and email; checks seeded reservations render, Confirm/Decline flips a pending reservation's status, and Add Reservation appends a new one; seeded message threads render with a last-message preview, opening a thread and replying as owner updates it and the preview. |
    | `discover_test.dart`, `camp_results_test.dart` | Category grid renders; tapping a category filters to matching camps; tapping a result opens Camp Details. |
-   | `camp_details_test.dart`, `write_review_test.dart` | Reviews tab renders; writing a review updates the aggregate rating/count live; review-form validation and pro/con chip add; Message Campsite opens a thread and a sent message appears. |
+   | `camp_details_test.dart`, `write_review_test.dart` | Reviews tab renders; writing a review updates the aggregate rating/count live; review-form validation and pro/con chip add; Message Campsite opens a thread and a sent message appears; the Map tab's "View on Map" button opens the full Map screen centered on that camp. |
+   | `map_test.dart` | Renders the app bar and a pin for every sample camp; tapping a marker shows a preview sheet with that camp's name; "View Details" navigates to Camp Details. |
    | `message_thread_test.dart` | Pumps `MessageThreadScreen` directly (sidesteps needing Camp Details/the dashboard, same pattern as `home_test.dart`); as camper renders the seeded conversation, sending a message appends it to the thread. |
    | `other_user_profile_test.dart` | Pumps `OtherUserProfileScreen` directly (same pattern as `home_test.dart`); renders the identity block; requesting to follow flips to Requested then Following after a real (non-simulated) delay; Message opens a thread and a sent message appears; Reviews tab renders this user's reviews and taps through to Camp Details. |
    | `schedule_trip_test.dart`, `trip_planner_test.dart`, `trip_details_test.dart` | Missing-dates and overlapping-range conflict validation; a valid range pops a `Trip` and appends it to `sampleTrips`; seeded trips render grouped/sorted on Trip Planner; a full round trip — schedule from Camp Details, confirm the snackbar, see it on a freshly-pumped Trip Planner; canceling a trip from Trip Details removes it from the list; Trip Details' View Camp opens Camp Details for the same camp. |
@@ -329,7 +336,7 @@ lib/config/env.dart         reads SUPABASE_URL / SUPABASE_ANON_KEY
 lib/services/auth_service.dart  Supabase Auth, with a dummy fallback when unconfigured
 lib/theme/app_theme.dart    light/dark theme (nature-inspired palette)
 lib/widgets/auth_layout.dart shared layout for register/login/forgot-password
-lib/screens/                landing, auth, home, notifications, discover/camp results/camp details/write review, schedule trip/trip planner/trip details, create post/post details, communities/community feed/create community, profile/edit profile screens
+lib/screens/                landing, auth, home, notifications, discover/camp results/camp details/write review, map, schedule trip/trip planner/trip details, create post/post details, communities/community feed/create community, profile/edit profile screens
 lib/models/                 content types (HomeFeedItem, AppNotification, Camp, Review, Comment, Profile, Trip, Community, CommunityMember, CommunityPost)
 lib/data/                   placeholder sample content for every screen above (no matching Supabase schema yet)
 test/                       unit/widget tests
@@ -346,6 +353,7 @@ docs/                       product & UX planning docs
 - [Flutter](https://flutter.dev) (web, Android, iOS from one codebase)
 - [supabase_flutter](https://pub.dev/packages/supabase_flutter) (Auth)
 - [image_picker](https://pub.dev/packages/image_picker) (avatar/cover photo selection on the Edit Profile screen)
+- [flutter_map](https://pub.dev/packages/flutter_map) + [latlong2](https://pub.dev/packages/latlong2) (Map screen and Camp Details mini-map, OpenStreetMap tiles — no API key needed)
 - [Maestro](https://maestro.mobile.dev) (end-to-end UI testing, Android/iOS)
 - [integration_test](https://pub.dev/packages/integration_test) + chromedriver (end-to-end testing, web)
 - [Netlify](https://www.netlify.com) (web deployment, staging + production sites) via [GitHub Actions](.github/workflows/deploy-web.yml) (manual trigger only)

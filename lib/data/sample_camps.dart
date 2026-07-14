@@ -1,3 +1,5 @@
+import 'package:latlong2/latlong.dart';
+
 import '../models/camp.dart';
 
 /// Placeholder camp directory. There's no `camps` schema in Supabase yet,
@@ -7,6 +9,7 @@ import '../models/camp.dart';
 final List<Camp> sampleCamps = [
   const Camp(
     id: 'daraitan',
+    coordinates: LatLng(14.5995, 121.4574),
     name: 'Mt. Daraitan campsite',
     location: 'Tanay, Rizal',
     categories: ['Mountains', 'Camping Grounds'],
@@ -19,6 +22,7 @@ final List<Camp> sampleCamps = [
   ),
   const Camp(
     id: 'nasugbu-beach',
+    coordinates: LatLng(14.0708, 120.6320),
     name: 'Nasugbu beach camp',
     location: 'Nasugbu, Batangas',
     categories: ['Beaches', 'Family Friendly'],
@@ -31,6 +35,7 @@ final List<Camp> sampleCamps = [
   ),
   const Camp(
     id: 'taal-lake',
+    coordinates: LatLng(13.8783, 120.9256),
     name: 'Taal Lake shoreline',
     location: 'Taal, Batangas',
     categories: ['Lakes', 'Weekend Getaways'],
@@ -43,6 +48,7 @@ final List<Camp> sampleCamps = [
   ),
   const Camp(
     id: 'batangas-ridge',
+    coordinates: LatLng(13.7565, 121.0583),
     name: 'Batangas Ridge',
     location: 'Batangas',
     categories: ['Mountains', 'Weekend Getaways'],
@@ -55,6 +61,7 @@ final List<Camp> sampleCamps = [
   ),
   const Camp(
     id: 'masungi',
+    coordinates: LatLng(14.5308, 121.2853),
     name: 'Masungi Georeserve',
     location: 'Baras, Rizal',
     categories: ['Forests', 'Family Friendly'],
@@ -67,6 +74,7 @@ final List<Camp> sampleCamps = [
   ),
   const Camp(
     id: 'pagsanjan-river',
+    coordinates: LatLng(14.2705, 121.4544),
     name: 'Pagsanjan River camp',
     location: 'Pagsanjan, Laguna',
     categories: ['Rivers', 'Budget Friendly'],
@@ -79,6 +87,7 @@ final List<Camp> sampleCamps = [
   ),
   const Camp(
     id: 'chateau-glamp',
+    coordinates: LatLng(14.0740, 120.6280),
     name: 'Chateau du Mer glamping',
     location: 'Nasugbu, Batangas',
     categories: ['Glamping', 'Weekend Getaways'],
@@ -91,6 +100,7 @@ final List<Camp> sampleCamps = [
   ),
   const Camp(
     id: 'overland-trail',
+    coordinates: LatLng(14.7420, 121.4630),
     name: 'Sierra Madre overland trail',
     location: 'General Nakar, Quezon',
     categories: ['Overlanding', 'Mountains'],
@@ -103,6 +113,7 @@ final List<Camp> sampleCamps = [
   ),
   const Camp(
     id: 'anawangin',
+    coordinates: LatLng(14.9430, 120.1290),
     name: 'Anawangin Cove',
     location: 'San Antonio, Zambales',
     categories: ['Beaches', 'Budget Friendly'],
@@ -115,6 +126,7 @@ final List<Camp> sampleCamps = [
   ),
   const Camp(
     id: 'sagada-pines',
+    coordinates: LatLng(17.0797, 120.9010),
     name: 'Sagada Pine Forest camp',
     location: 'Sagada, Mountain Province',
     categories: ['Forests', 'Pet Friendly'],
@@ -127,6 +139,7 @@ final List<Camp> sampleCamps = [
   ),
   const Camp(
     id: 'caliraya-lake',
+    coordinates: LatLng(14.2967, 121.4869),
     name: 'Caliraya Lake camp',
     location: 'Lumban, Laguna',
     categories: ['Lakes', 'Family Friendly'],
@@ -139,6 +152,7 @@ final List<Camp> sampleCamps = [
   ),
   const Camp(
     id: 'puerto-galera',
+    coordinates: LatLng(13.5083, 120.9540),
     name: 'Puerto Galera cliffside camp',
     location: 'Puerto Galera, Oriental Mindoro',
     categories: ['Beaches', 'Pet Friendly'],

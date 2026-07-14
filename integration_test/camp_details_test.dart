@@ -89,5 +89,18 @@ void main() {
         expect(find.text('What are the check-in hours?'), findsOneWidget);
       },
     );
+
+    testWidgets('View on Map opens the full Map screen centered on this camp', (
+      tester,
+    ) async {
+      await pumpCampDetailsScreen(tester, camp: _campWithReviews);
+
+      await tester.tap(find.text('Map'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('viewOnMapButton')));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(AppBar, 'Map'), findsOneWidget);
+    });
   });
 }

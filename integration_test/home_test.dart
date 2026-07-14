@@ -4,6 +4,7 @@ import 'package:integration_test/integration_test.dart';
 
 import 'package:camper/screens/discover_screen.dart';
 import 'package:camper/screens/home_screen.dart';
+import 'package:camper/screens/map_screen.dart';
 
 // Home is normally reached after a successful login, which would require a
 // pre-seeded, confirmed Supabase test account (see .maestro/home_smoke.yaml
@@ -14,7 +15,10 @@ Future<void> pumpHomeScreen(WidgetTester tester) async {
   await tester.pumpWidget(
     MaterialApp(
       home: const HomeScreen(),
-      routes: {'/discover': (context) => const DiscoverScreen()},
+      routes: {
+        '/discover': (context) => const DiscoverScreen(),
+        '/map': (context) => const MapScreen(),
+      },
     ),
   );
   await tester.pumpAndSettle();
@@ -52,15 +56,13 @@ void main() {
       expect(find.text('Create Post'), findsOneWidget);
     });
 
-    testWidgets('tapping a non-Home tab shows a coming-soon message', (
-      tester,
-    ) async {
+    testWidgets('tapping Map navigates to the Map screen', (tester) async {
       await pumpHomeScreen(tester);
 
       await tester.tap(find.text('Map'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Map is coming soon.'), findsOneWidget);
+      expect(find.widgetWithText(AppBar, 'Map'), findsOneWidget);
     });
 
     testWidgets('tapping Discover navigates to the Discover screen', (

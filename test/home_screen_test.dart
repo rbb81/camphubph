@@ -8,6 +8,7 @@ import 'package:camper/models/followable_user.dart';
 import 'package:camper/screens/communities_screen.dart';
 import 'package:camper/screens/discover_screen.dart';
 import 'package:camper/screens/home_screen.dart';
+import 'package:camper/screens/map_screen.dart';
 
 Future<void> pumpHomeScreen(WidgetTester tester) async {
   await tester.pumpWidget(
@@ -15,6 +16,7 @@ Future<void> pumpHomeScreen(WidgetTester tester) async {
       home: const HomeScreen(),
       routes: {
         '/discover': (context) => const DiscoverScreen(),
+        '/map': (context) => const MapScreen(),
         '/communities': (context) => const CommunitiesScreen(),
       },
     ),
@@ -67,15 +69,13 @@ void main() {
       expect(find.text('Follow'), findsWidgets);
     });
 
-    testWidgets('tapping a non-Home tab shows a coming-soon message', (
-      tester,
-    ) async {
+    testWidgets('tapping Map navigates to the Map screen', (tester) async {
       await pumpHomeScreen(tester);
 
       await tester.tap(find.text('Map'));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
-      expect(find.text('Map is coming soon.'), findsOneWidget);
+      expect(find.widgetWithText(AppBar, 'Map'), findsOneWidget);
     });
 
     testWidgets('tapping Discover navigates to the Discover screen', (

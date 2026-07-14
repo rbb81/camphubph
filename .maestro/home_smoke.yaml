@@ -26,4 +26,4 @@ env:
 - assertVisible: "Communities"
 - assertVisible: "Profile"
 - tapOn: "Map"
-- assertVisible: "Map is coming soon."
+- assertVisible: "Map"

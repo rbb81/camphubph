@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../data/sample_camps.dart';
 import '../data/sample_feed.dart';
@@ -140,6 +141,7 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen>
         distanceKm: 0,
         priceLevel: 1,
         description: 'No description available yet for this camp.',
+        coordinates: const LatLng(12.8797, 121.7740),
       ),
     );
     Navigator.of(
@@ -468,6 +470,7 @@ class _ReviewCard extends StatelessWidget {
           distanceKm: 0,
           priceLevel: 1,
           description: '',
+          coordinates: const LatLng(12.8797, 121.7740),
         ),
       )
       .name;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 
 class DiscoverCategory {
   const DiscoverCategory(this.label, this.icon);
@@ -33,6 +34,7 @@ class Camp {
     required this.distanceKm,
     required this.priceLevel,
     required this.description,
+    required this.coordinates,
   });
 
   final String id;
@@ -44,6 +46,7 @@ class Camp {
   final double distanceKm;
   final int priceLevel;
   final String description;
+  final LatLng coordinates;
 
   IconData get primaryIcon => kDiscoverCategories
       .firstWhere(
@@ -52,15 +55,17 @@ class Camp {
       )
       .icon;
 
-  Camp copyWith({double? rating, int? reviewCount}) => Camp(
-    id: id,
-    name: name,
-    location: location,
-    categories: categories,
-    rating: rating ?? this.rating,
-    reviewCount: reviewCount ?? this.reviewCount,
-    distanceKm: distanceKm,
-    priceLevel: priceLevel,
-    description: description,
-  );
+  Camp copyWith({double? rating, int? reviewCount, LatLng? coordinates}) =>
+      Camp(
+        id: id,
+        name: name,
+        location: location,
+        categories: categories,
+        rating: rating ?? this.rating,
+        reviewCount: reviewCount ?? this.reviewCount,
+        distanceKm: distanceKm,
+        priceLevel: priceLevel,
+        description: description,
+        coordinates: coordinates ?? this.coordinates,
+      );
 }
