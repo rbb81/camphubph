@@ -56,5 +56,69 @@ void main() {
 
       expect(find.text('Edit Profile'), findsOneWidget);
     });
+
+    testWidgets('tapping a post opens the post detail screen', (
+      tester,
+    ) async {
+      await pumpProfileScreen(tester);
+
+      await tester.tap(find.text(sampleProfilePosts.first.caption));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Post'), findsOneWidget);
+      expect(find.text(sampleProfilePosts.first.caption), findsOneWidget);
+    });
+
+    testWidgets('tapping a saved camp opens Camp Details', (tester) async {
+      await pumpProfileScreen(tester);
+
+      await tester.ensureVisible(find.text('Saved Camps'));
+      await tester.tap(find.text('Saved Camps'));
+      await tester.pumpAndSettle();
+
+      // Invoke the ListTile's onTap directly rather than a geometric tap —
+      // multi-tab jumps through this screen's pinned TabBar can leave the
+      // tapped item's hit-test position unreliable (same fallback used in
+      // test/profile_screen_test.dart).
+      tester
+          .widget<ListTile>(
+            find.widgetWithText(ListTile, sampleSavedCamps.first.name),
+          )
+          .onTap!();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Overview'), findsOneWidget);
+    });
+
+    testWidgets(
+      'tapping a completed trip opens the trip detail screen and View Camp navigates to a fallback Camp Details',
+      (tester) async {
+        await pumpProfileScreen(tester);
+
+        await tester.ensureVisible(find.text('Completed Trips'));
+        await tester.tap(find.text('Completed Trips'));
+        await tester.pumpAndSettle();
+
+        tester
+            .widget<ListTile>(
+              find.widgetWithText(ListTile, sampleCompletedTrips.first.name),
+            )
+            .onTap!();
+        await tester.pumpAndSettle();
+
+        expect(find.text('Trip'), findsOneWidget);
+        expect(find.byKey(const Key('viewCampButton')), findsOneWidget);
+        expect(find.text('Cancel'), findsNothing);
+
+        await tester.tap(find.byKey(const Key('viewCampButton')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Overview'), findsOneWidget);
+        expect(
+          find.text('No description available yet for this camp.'),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }

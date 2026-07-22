@@ -10,6 +10,10 @@
 # the header's icon-only Settings button isn't targeted here since Maestro
 # addresses elements by visible text/accessibility label, and that button
 # currently has neither (see profile_screen.dart's settingsButton IconButton).
+# Also covers the tab-item detail views added afterward: Posts opens a
+# lightweight Post detail, and Wishlist/Completed Trips open Camp Details
+# (Completed Trips via its own "View Camp" button, since the sample trip
+# name doesn't match a real camp and falls back to a placeholder Camp).
 appId: com.camphubph.camper
 env:
   MAESTRO_TEST_EMAIL: dummy@example.com
@@ -28,5 +32,17 @@ env:
 - tapOn: "Profile"
 - assertVisible: "Posts"
 - assertVisible: "Wishlist"
+- tapOn: "Made it to the summit just in time for sunrise. Worth every step."
+- assertVisible: "Post"
+- back
 - tapOn: "Wishlist"
 - assertVisible: "Batangas Ridge"
+- tapOn: "Batangas Ridge"
+- assertVisible: "Overview"
+- back
+- tapOn: "Completed Trips"
+- assertVisible: "Mt. Daraitan weekend climb"
+- tapOn: "Mt. Daraitan weekend climb"
+- assertVisible: "View Camp"
+- tapOn: "View Camp"
+- assertVisible: "Overview"

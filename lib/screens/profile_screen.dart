@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:latlong2/latlong.dart';
 
+import '../data/sample_camps.dart';
 import '../data/sample_profile.dart';
+import '../models/camp.dart';
 import '../models/profile.dart';
 import '../theme/app_theme.dart';
+import 'camp_details_screen.dart';
 import 'edit_profile_screen.dart';
+import 'profile_item_detail_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -55,6 +60,63 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
+  void _openPost(ProfilePostItem post) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ProfileSimpleDetailScreen(
+          appBarTitle: 'Post',
+          primaryText: post.caption,
+          secondaryText: post.timeAgo,
+        ),
+      ),
+    );
+  }
+
+  void _openPhoto(ProfilePhotoItem photo) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ProfileSimpleDetailScreen(
+          appBarTitle: 'Photo',
+          primaryText: photo.caption,
+          placeholderIcon: Icons.photo_outlined,
+        ),
+      ),
+    );
+  }
+
+  void _openReview(ProfileReviewItem review) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ReviewDetailScreen(review: review)),
+    );
+  }
+
+  void _openCampByName(String name, String location) {
+    final camp = sampleCamps.firstWhere(
+      (c) => c.name == name,
+      orElse: () => Camp(
+        id: name,
+        name: name,
+        location: location,
+        categories: const ['Camping Grounds'],
+        rating: 0,
+        reviewCount: 0,
+        distanceKm: 0,
+        priceLevel: 1,
+        description: 'No description available yet for this camp.',
+        coordinates: const LatLng(12.8797, 121.7740),
+      ),
+    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => CampDetailsScreen(camp: camp)));
+  }
+
+  void _openCompletedTrip(ProfileCompletedTripItem trip) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => CompletedTripDetailScreen(trip: trip)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -86,29 +148,28 @@ class _ProfileScreenState extends State<ProfileScreen>
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        _PostsTab(
-                          items: sampleProfilePosts,
-                          onTap: () => _comingSoon('Post details'),
-                        ),
+                        _PostsTab(items: sampleProfilePosts, onTap: _openPost),
                         _PhotosTab(
                           items: sampleProfilePhotos,
-                          onTap: () => _comingSoon('Photo details'),
+                          onTap: _openPhoto,
                         ),
                         _ReviewsTab(
                           items: sampleProfileReviews,
-                          onTap: () => _comingSoon('Review details'),
+                          onTap: _openReview,
                         ),
                         _SavedCampsTab(
                           items: sampleSavedCamps,
-                          onTap: () => _comingSoon('Camp details'),
+                          onTap: (item) =>
+                              _openCampByName(item.name, item.location),
                         ),
                         _WishlistTab(
                           items: sampleWishlist,
-                          onTap: () => _comingSoon('Camp details'),
+                          onTap: (item) =>
+                              _openCampByName(item.name, item.location),
                         ),
                         _CompletedTripsTab(
                           items: sampleCompletedTrips,
-                          onTap: () => _comingSoon('Trip details'),
+                          onTap: _openCompletedTrip,
                         ),
                       ],
                     ),
@@ -423,7 +484,7 @@ class _PostsTab extends StatelessWidget {
   const _PostsTab({required this.items, required this.onTap});
 
   final List<ProfilePostItem> items;
-  final VoidCallback onTap;
+  final ValueChanged<ProfilePostItem> onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -433,7 +494,7 @@ class _PostsTab extends StatelessWidget {
       itemCount: items.length,
       separatorBuilder: (_, _) => const Divider(),
       itemBuilder: (context, index) => ListTile(
-        onTap: onTap,
+        onTap: () => onTap(items[index]),
         title: Text(items[index].caption),
         subtitle: Text(items[index].timeAgo),
       ),
@@ -445,7 +506,7 @@ class _PhotosTab extends StatelessWidget {
   const _PhotosTab({required this.items, required this.onTap});
 
   final List<ProfilePhotoItem> items;
-  final VoidCallback onTap;
+  final ValueChanged<ProfilePhotoItem> onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -460,7 +521,7 @@ class _PhotosTab extends StatelessWidget {
       ),
       itemCount: items.length,
       itemBuilder: (context, index) => InkWell(
-        onTap: onTap,
+        onTap: () => onTap(items[index]),
         child: Tooltip(
           message: items[index].caption,
           child: Container(
@@ -485,7 +546,7 @@ class _ReviewsTab extends StatelessWidget {
   const _ReviewsTab({required this.items, required this.onTap});
 
   final List<ProfileReviewItem> items;
-  final VoidCallback onTap;
+  final ValueChanged<ProfileReviewItem> onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -495,7 +556,7 @@ class _ReviewsTab extends StatelessWidget {
       itemCount: items.length,
       separatorBuilder: (_, _) => const Divider(),
       itemBuilder: (context, index) => ListTile(
-        onTap: onTap,
+        onTap: () => onTap(items[index]),
         title: Text(items[index].campName),
         subtitle: Text(items[index].snippet),
         trailing: Row(
@@ -515,7 +576,7 @@ class _SavedCampsTab extends StatelessWidget {
   const _SavedCampsTab({required this.items, required this.onTap});
 
   final List<ProfileSavedCampItem> items;
-  final VoidCallback onTap;
+  final ValueChanged<ProfileSavedCampItem> onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -527,7 +588,7 @@ class _SavedCampsTab extends StatelessWidget {
       itemCount: items.length,
       separatorBuilder: (_, _) => const Divider(),
       itemBuilder: (context, index) => ListTile(
-        onTap: onTap,
+        onTap: () => onTap(items[index]),
         leading: const Icon(Icons.terrain),
         title: Text(items[index].name),
         subtitle: Text(items[index].location),
@@ -540,7 +601,7 @@ class _WishlistTab extends StatelessWidget {
   const _WishlistTab({required this.items, required this.onTap});
 
   final List<ProfileWishlistItem> items;
-  final VoidCallback onTap;
+  final ValueChanged<ProfileWishlistItem> onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -550,7 +611,7 @@ class _WishlistTab extends StatelessWidget {
       itemCount: items.length,
       separatorBuilder: (_, _) => const Divider(),
       itemBuilder: (context, index) => ListTile(
-        onTap: onTap,
+        onTap: () => onTap(items[index]),
         leading: const Icon(Icons.bookmark_border),
         title: Text(items[index].name),
         subtitle: Text(items[index].location),
@@ -563,7 +624,7 @@ class _CompletedTripsTab extends StatelessWidget {
   const _CompletedTripsTab({required this.items, required this.onTap});
 
   final List<ProfileCompletedTripItem> items;
-  final VoidCallback onTap;
+  final ValueChanged<ProfileCompletedTripItem> onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -573,7 +634,7 @@ class _CompletedTripsTab extends StatelessWidget {
       itemCount: items.length,
       separatorBuilder: (_, _) => const Divider(),
       itemBuilder: (context, index) => ListTile(
-        onTap: onTap,
+        onTap: () => onTap(items[index]),
         leading: const Icon(Icons.check_circle_outline),
         title: Text(items[index].name),
         subtitle: Text(items[index].dateLabel),
