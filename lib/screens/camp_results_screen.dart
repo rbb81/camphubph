@@ -16,9 +16,14 @@ extension on _SortOption {
 }
 
 class CampResultsScreen extends StatefulWidget {
-  const CampResultsScreen({super.key, required this.category});
+  const CampResultsScreen({super.key, this.category, this.locationQuery})
+    : assert(
+        (category == null) != (locationQuery == null),
+        'Provide exactly one of category or locationQuery',
+      );
 
-  final String category;
+  final String? category;
+  final String? locationQuery;
 
   @override
   State<CampResultsScreen> createState() => _CampResultsScreenState();
@@ -33,7 +38,11 @@ class _CampResultsScreenState extends State<CampResultsScreen> {
   void initState() {
     super.initState();
     _camps = sampleCamps
-        .where((c) => c.categories.contains(widget.category))
+        .where(
+          (c) => widget.category != null
+              ? c.categories.contains(widget.category)
+              : c.location == widget.locationQuery,
+        )
         .toList()
       ..sort(_compareCamps);
   }
@@ -130,7 +139,7 @@ class _CampResultsScreenState extends State<CampResultsScreen> {
     final camps = _visibleCamps;
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.category),
+        title: Text(widget.category ?? widget.locationQuery!),
         actions: [
           IconButton(
             key: const Key('filterButton'),

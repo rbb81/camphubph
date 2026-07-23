@@ -38,13 +38,13 @@ void main() {
       expect(find.text('Discover'), findsOneWidget);
     });
 
-    testWidgets('search shows a coming-soon message', (tester) async {
+    testWidgets('search opens the Search screen', (tester) async {
       await pumpHomeScreen(tester);
 
       await tester.tap(find.byKey(const Key('searchButton')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Search is coming soon.'), findsOneWidget);
+      expect(find.byKey(const Key('searchQueryField')), findsOneWidget);
     });
 
     testWidgets('create post opens the Create Post screen', (tester) async {

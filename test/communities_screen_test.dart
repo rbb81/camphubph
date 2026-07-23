@@ -57,13 +57,13 @@ void main() {
       expect(find.text('Feed'), findsOneWidget);
     });
 
-    testWidgets('tapping search shows a coming-soon message', (tester) async {
+    testWidgets('tapping search opens the Search screen', (tester) async {
       await pumpCommunitiesScreen(tester);
 
       await tester.tap(find.byKey(const Key('communitiesSearchButton')));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
-      expect(find.text('Search is coming soon.'), findsOneWidget);
+      expect(find.byKey(const Key('searchQueryField')), findsOneWidget);
     });
 
     testWidgets('shows a private badge on a private community', (

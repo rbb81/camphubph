@@ -18,6 +18,7 @@ import 'create_post_screen.dart';
 import 'notifications_screen.dart';
 import 'other_user_profile_screen.dart';
 import 'post_details_screen.dart';
+import 'search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,12 +32,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int get _unreadNotificationCount =>
       sampleNotifications.where((n) => !n.isRead).length;
-
-  void _comingSoon(String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$feature is coming soon.')),
-    );
-  }
 
   Future<void> _openNotifications() async {
     await Navigator.of(
@@ -190,8 +185,11 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             key: const Key('searchButton'),
+            tooltip: 'Search',
             icon: const Icon(Icons.search),
-            onPressed: () => _comingSoon('Search'),
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const SearchScreen())),
           ),
           IconButton(
             key: const Key('notificationsButton'),

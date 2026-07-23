@@ -22,13 +22,13 @@ void main() {
       }
     });
 
-    testWidgets('tapping search shows a coming-soon message', (tester) async {
+    testWidgets('tapping search opens the Search screen', (tester) async {
       await pumpDiscoverScreen(tester);
 
       await tester.tap(find.byKey(const Key('discoverSearchButton')));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
-      expect(find.text('Search is coming soon.'), findsOneWidget);
+      expect(find.byKey(const Key('searchQueryField')), findsOneWidget);
     });
 
     testWidgets('tapping a category navigates to its results list', (

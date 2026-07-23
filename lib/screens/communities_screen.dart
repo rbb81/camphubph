@@ -5,6 +5,7 @@ import '../models/community.dart';
 import '../theme/app_theme.dart';
 import 'community_feed_screen.dart';
 import 'create_community_screen.dart';
+import 'search_screen.dart';
 
 class CommunitiesScreen extends StatefulWidget {
   const CommunitiesScreen({super.key});
@@ -15,12 +16,6 @@ class CommunitiesScreen extends StatefulWidget {
 
 class _CommunitiesScreenState extends State<CommunitiesScreen> {
   final List<Community> _communities = List.of(sampleCommunities);
-
-  void _comingSoon(String feature) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('$feature is coming soon.')));
-  }
 
   void _toggleJoin(Community community) {
     if (community.isPrivate && !community.isJoined) {
@@ -113,8 +108,11 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
         actions: [
           IconButton(
             key: const Key('communitiesSearchButton'),
+            tooltip: 'Search',
             icon: const Icon(Icons.search),
-            onPressed: () => _comingSoon('Search'),
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const SearchScreen())),
           ),
         ],
       ),

@@ -153,13 +153,13 @@ void main() {
       expect(find.text('Fresh air and good company.'), findsOneWidget);
     });
 
-    testWidgets('tapping search shows a coming-soon message', (tester) async {
+    testWidgets('tapping search opens the Search screen', (tester) async {
       await pumpHomeScreen(tester);
 
       await tester.tap(find.byKey(const Key('searchButton')));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
-      expect(find.text('Search is coming soon.'), findsOneWidget);
+      expect(find.byKey(const Key('searchQueryField')), findsOneWidget);
     });
 
     testWidgets('liking the first friend post fills the heart and bumps the count', (

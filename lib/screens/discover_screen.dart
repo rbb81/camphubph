@@ -3,15 +3,10 @@ import 'package:flutter/material.dart';
 import '../models/camp.dart';
 import '../theme/app_theme.dart';
 import 'camp_results_screen.dart';
+import 'search_screen.dart';
 
 class DiscoverScreen extends StatelessWidget {
   const DiscoverScreen({super.key});
-
-  void _comingSoon(BuildContext context, String feature) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('$feature is coming soon.')));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,8 +16,11 @@ class DiscoverScreen extends StatelessWidget {
         actions: [
           IconButton(
             key: const Key('discoverSearchButton'),
+            tooltip: 'Search',
             icon: const Icon(Icons.search),
-            onPressed: () => _comingSoon(context, 'Search'),
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const SearchScreen())),
           ),
         ],
       ),
