@@ -285,6 +285,105 @@ void main() {
     });
 
     testWidgets(
+      'a non-moderator sees no remove-post controls',
+      (tester) async {
+        await pumpCommunityFeedScreen(tester);
+        expect(
+          find.byKey(const Key('removePostButton_cp1')),
+          findsNothing,
+        );
+      },
+    );
+
+    testWidgets(
+      'a moderator sees remove-post controls',
+      (tester) async {
+        await pumpCommunityFeedScreen(tester, community: _moderated);
+        expect(
+          find.byKey(const Key('removePostButton_cp6')),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'a moderator can remove a post from the feed after confirming',
+      (tester) async {
+        await pumpCommunityFeedScreen(tester, community: _moderated);
+
+        expect(
+          find.text('Permit lines at the Mayon ranger station were short '
+              'this morning — good time to go if you can get there early.'),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.byKey(const Key('removePostButton_cp6')));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const Key('confirmRemovePostButton')));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byKey(const Key('communityPostCard_cp6')),
+          findsNothing,
+        );
+      },
+    );
+
+    testWidgets(
+      'canceling the remove-post confirmation keeps the post',
+      (tester) async {
+        await pumpCommunityFeedScreen(tester, community: _moderated);
+
+        await tester.tap(find.byKey(const Key('removePostButton_cp6')));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byKey(const Key('communityPostCard_cp6')),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'a moderator can ban a regular member from the Members tab',
+      (tester) async {
+        await pumpCommunityFeedScreen(tester, community: _moderated);
+
+        await tester.tap(find.text('Members'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Rico P.'), findsOneWidget);
+        expect(
+          find.byKey(const Key('banMemberButton_Rico P.')),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.byKey(const Key('banMemberButton_Rico P.')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('confirmBanMemberButton')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Rico P.'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'a non-moderator sees no ban controls on the Members tab',
+      (tester) async {
+        await pumpCommunityFeedScreen(tester);
+
+        await tester.tap(find.text('Members'));
+        await tester.pumpAndSettle();
+
+        expect(find.byIcon(Icons.block), findsNothing);
+      },
+    );
+
+    testWidgets(
       'requesting to join a private community shows Requested, then Joined after approval',
       (tester) async {
         await pumpCommunityFeedScreen(tester, community: _private);

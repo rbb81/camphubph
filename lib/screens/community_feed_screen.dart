@@ -120,13 +120,89 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen>
         builder: (_) => CommunityPostDetailsScreen(
           post: post,
           currentUser: sampleProfile,
+          isModerator: _isModerator,
         ),
       ),
     );
-    if (updated != null) {
-      final index = _posts.indexWhere((p) => p.id == updated.id);
-      if (index != -1) setState(() => _posts[index] = updated);
-    }
+    if (!mounted) return;
+    final index = _posts.indexWhere((p) => p.id == post.id);
+    if (index == -1) return;
+    setState(() {
+      if (updated == null) {
+        _posts.removeAt(index);
+      } else {
+        _posts[index] = updated;
+      }
+    });
+  }
+
+  Future<void> _removePost(CommunityFeedPost post) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Remove this post?'),
+        content: const Text(
+          'This will remove the post for everyone in the community.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            key: const Key('confirmRemovePostButton'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Yes, Remove'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    setState(() {
+      _posts.removeWhere((p) => p.id == post.id);
+    });
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Post removed.')));
+  }
+
+  Future<void> _banMember(CommunityMember member) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Ban ${member.name}?'),
+        content: const Text('They will be removed from this community.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            key: const Key('confirmBanMemberButton'),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Yes, Ban'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    sampleCommunityMembers.removeWhere(
+      (m) => m.communityId == _community.id && m.name == member.name,
+    );
+    setState(() {
+      _members = sampleCommunityMembers
+          .where((m) => m.communityId == _community.id)
+          .toList();
+      _community = _community.copyWith(
+        memberCount: _community.memberCount - 1,
+      );
+    });
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${member.name} was banned from ${_community.name}.')),
+    );
   }
 
   bool get _isModerator => _members.any(
@@ -305,9 +381,11 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen>
                 children: [
                   _FeedTab(
                     posts: orderedPosts,
+                    isModerator: _isModerator,
                     onLike: (post) =>
                         _toggleLike(_posts.indexWhere((p) => p.id == post.id)),
                     onComment: _openPostDetails,
+                    onRemove: _removePost,
                   ),
                   _RulesTab(rules: _community.rules),
                   _MembersTab(
@@ -315,6 +393,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen>
                     isModerator: _isModerator,
                     pendingCount: _pendingRequestCount,
                     onManageRequests: _openPendingRequests,
+                    onBan: _banMember,
                   ),
                 ],
               ),
@@ -335,13 +414,17 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen>
 class _FeedTab extends StatelessWidget {
   const _FeedTab({
     required this.posts,
+    required this.isModerator,
     required this.onLike,
     required this.onComment,
+    required this.onRemove,
   });
 
   final List<CommunityFeedPost> posts;
+  final bool isModerator;
   final ValueChanged<CommunityFeedPost> onLike;
   final ValueChanged<CommunityFeedPost> onComment;
+  final ValueChanged<CommunityFeedPost> onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -361,8 +444,10 @@ class _FeedTab extends StatelessWidget {
         final post = posts[index];
         return _CommunityPostCard(
           post: post,
+          isModerator: isModerator,
           onLike: () => onLike(post),
           onComment: () => onComment(post),
+          onRemove: () => onRemove(post),
         );
       },
     );
@@ -372,13 +457,17 @@ class _FeedTab extends StatelessWidget {
 class _CommunityPostCard extends StatelessWidget {
   const _CommunityPostCard({
     required this.post,
+    required this.isModerator,
     required this.onLike,
     required this.onComment,
+    required this.onRemove,
   });
 
   final CommunityFeedPost post;
+  final bool isModerator;
   final VoidCallback onLike;
   final VoidCallback onComment;
+  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -460,6 +549,14 @@ class _CommunityPostCard extends StatelessWidget {
                   ],
                 ),
               ),
+              if (isModerator)
+                IconButton(
+                  key: Key('removePostButton_${post.id}'),
+                  tooltip: 'Remove post',
+                  iconSize: 18,
+                  onPressed: onRemove,
+                  icon: const Icon(Icons.delete_outline),
+                ),
             ],
           ),
           const SizedBox(height: 10),
@@ -565,12 +662,14 @@ class _MembersTab extends StatelessWidget {
     this.isModerator = false,
     this.pendingCount = 0,
     this.onManageRequests,
+    this.onBan,
   });
 
   final List<CommunityMember> members;
   final bool isModerator;
   final int pendingCount;
   final VoidCallback? onManageRequests;
+  final ValueChanged<CommunityMember>? onBan;
 
   @override
   Widget build(BuildContext context) {
@@ -611,17 +710,26 @@ class _MembersTab extends StatelessWidget {
                   separatorBuilder: (_, _) => const Divider(),
                   itemBuilder: (context, index) {
                     final member = ordered[index];
+                    Widget? trailing;
+                    if (member.role == CommunityRole.moderator) {
+                      trailing = _ModeratorBadge(
+                        accent:
+                            Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.brandDark
+                            : AppColors.brand,
+                      );
+                    } else if (isModerator && onBan != null) {
+                      trailing = IconButton(
+                        key: Key('banMemberButton_${member.name}'),
+                        tooltip: 'Ban member',
+                        onPressed: () => onBan!(member),
+                        icon: const Icon(Icons.block),
+                      );
+                    }
                     return ListTile(
                       leading: CircleAvatar(child: Text(member.initials)),
                       title: Text(member.name),
-                      trailing: member.role == CommunityRole.moderator
-                          ? _ModeratorBadge(
-                              accent: Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? AppColors.brandDark
-                                  : AppColors.brand,
-                            )
-                          : null,
+                      trailing: trailing,
                     );
                   },
                 ),

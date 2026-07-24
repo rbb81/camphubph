@@ -156,6 +156,38 @@ void main() {
     );
 
     testWidgets(
+      'a moderator can remove a post and ban a member',
+      (tester) async {
+        final moderatedCommunity = sampleCommunities.firstWhere(
+          (c) => c.id == 'bicol-volcano-trekkers',
+        );
+        await pumpCommunityFeedScreen(tester, community: moderatedCommunity);
+
+        expect(
+          find.byKey(const Key('removePostButton_cp6')),
+          findsOneWidget,
+        );
+        await tester.tap(find.byKey(const Key('removePostButton_cp6')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('confirmRemovePostButton')));
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const Key('communityPostCard_cp6')),
+          findsNothing,
+        );
+
+        await tester.tap(find.text('Members'));
+        await tester.pumpAndSettle();
+        expect(find.text('Rico P.'), findsOneWidget);
+        await tester.tap(find.byKey(const Key('banMemberButton_Rico P.')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('confirmBanMemberButton')));
+        await tester.pumpAndSettle();
+        expect(find.text('Rico P.'), findsNothing);
+      },
+    );
+
+    testWidgets(
       'requesting to join a private community shows Requested, then Joined after approval',
       (tester) async {
         final privateCommunity = sampleCommunities.firstWhere(

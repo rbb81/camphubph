@@ -21,6 +21,7 @@ const _post = FriendPostItem(
   commentCount: 0,
   comments: [
     Comment(
+      id: 'c1',
       authorName: 'Rico P.',
       authorInitials: 'RP',
       text: 'Nice one @MiguelIbarra, we should climb this together next time.',

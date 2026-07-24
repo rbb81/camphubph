@@ -19,6 +19,7 @@ const _post = CommunityFeedPost(
   isModerator: true,
   comments: [
     Comment(
+      id: 'c1',
       authorName: 'Miguel Ibarra',
       authorInitials: 'MI',
       text: 'Got it, will start tagging mine from now on.',
@@ -32,8 +33,9 @@ class _ResultCapture {
 }
 
 Future<_ResultCapture> _pumpCommunityPostDetailsHost(
-  WidgetTester tester,
-) async {
+  WidgetTester tester, {
+  bool isModerator = false,
+}) async {
   final capture = _ResultCapture();
   await tester.pumpWidget(
     MaterialApp(
@@ -48,6 +50,7 @@ Future<_ResultCapture> _pumpCommunityPostDetailsHost(
                         builder: (_) => CommunityPostDetailsScreen(
                           post: _post,
                           currentUser: sampleProfile,
+                          isModerator: isModerator,
                         ),
                       ),
                     );
@@ -166,5 +169,59 @@ void main() {
       expect(capture.value!.isLiked, isTrue);
       expect(capture.value!.likeCount, 43);
     });
+
+    testWidgets(
+      'a non-moderator sees no remove controls on the post or its comments',
+      (tester) async {
+        await _pumpCommunityPostDetailsHost(tester);
+
+        expect(find.byKey(const Key('removePostButton')), findsNothing);
+        expect(
+          find.byKey(const Key('removeCommentButton_c1')),
+          findsNothing,
+        );
+      },
+    );
+
+    testWidgets(
+      'a moderator can remove a comment',
+      (tester) async {
+        await _pumpCommunityPostDetailsHost(tester, isModerator: true);
+
+        expect(
+          find.text('Got it, will start tagging mine from now on.'),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.byKey(const Key('removeCommentButton_c1')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('confirmRemoveCommentButton')));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Got it, will start tagging mine from now on.'),
+          findsNothing,
+        );
+        expect(find.text('No comments yet.'), findsOneWidget);
+        expect(find.text('0'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'a moderator can remove the post, which pops null instead of the post',
+      (tester) async {
+        final capture = await _pumpCommunityPostDetailsHost(
+          tester,
+          isModerator: true,
+        );
+
+        await tester.tap(find.byKey(const Key('removePostButton')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('confirmRemovePostButton')));
+        await tester.pumpAndSettle();
+
+        expect(capture.value, isNull);
+      },
+    );
   });
 }

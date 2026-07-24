@@ -31,12 +31,14 @@ const _post = FriendPostItem(
   commentCount: 1,
   comments: [
     Comment(
+      id: 'c1',
       authorName: 'Miguel Ibarra',
       authorInitials: 'MI',
       text: 'Amazing shot!',
       timeAgo: '1h',
     ),
     Comment(
+      id: 'c2',
       authorName: 'Rico P.',
       authorInitials: 'RP',
       text: 'Nice one @MiguelIbarra, we should climb this together next time.',

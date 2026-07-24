@@ -26,12 +26,14 @@ final List<CommunityFeedPost> sampleCommunityPosts = [
     isModerator: true,
     comments: [
       Comment(
+        id: 'c_cp1_1',
         authorName: 'Miguel Ibarra',
         authorInitials: 'MI',
         text: 'Got it, will start tagging mine from now on.',
         timeAgo: '2d',
       ),
       Comment(
+        id: 'c_cp1_2',
         authorName: 'Ana Dela Cruz',
         authorInitials: 'AD',
         text: 'Should we add a route-difficulty tag too?',
@@ -62,6 +64,7 @@ final List<CommunityFeedPost> sampleCommunityPosts = [
     commentCount: 7,
     comments: [
       Comment(
+        id: 'c_cp3_1',
         authorName: 'Rico Fernandez',
         authorInitials: 'RF',
         text: 'Recovery strap, D-shackles, and a decent jack for a start.',
@@ -94,5 +97,26 @@ final List<CommunityFeedPost> sampleCommunityPosts = [
         '8km. Bring more water than you think you need.',
     likeCount: 31,
     commentCount: 4,
+  ),
+  const CommunityFeedPost(
+    id: 'cp6',
+    communityId: 'bicol-volcano-trekkers',
+    authorName: 'Rico P.',
+    authorInitials: 'RP',
+    timeAgo: '4h',
+    body:
+        'Permit lines at the Mayon ranger station were short this morning — '
+        'good time to go if you can get there early.',
+    likeCount: 6,
+    commentCount: 1,
+    comments: [
+      Comment(
+        id: 'c_cp6_1',
+        authorName: 'Ana Dela Cruz',
+        authorInitials: 'AD',
+        text: 'Thanks for the update!',
+        timeAgo: '3h',
+      ),
+    ],
   ),
 ];

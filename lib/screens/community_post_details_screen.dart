@@ -17,10 +17,16 @@ class CommunityPostDetailsScreen extends StatefulWidget {
     super.key,
     required this.post,
     required this.currentUser,
+    this.isModerator = false,
   });
 
   final CommunityFeedPost post;
   final UserProfile currentUser;
+
+  /// Whether the current user moderates this post's community — gates the
+  /// remove-post/remove-comment actions. Defaults to false so existing
+  /// non-moderator call sites don't need updating.
+  final bool isModerator;
 
   @override
   State<CommunityPostDetailsScreen> createState() =>
@@ -31,6 +37,7 @@ class _CommunityPostDetailsScreenState
     extends State<CommunityPostDetailsScreen> {
   final _commentController = TextEditingController();
   late CommunityFeedPost _post;
+  bool _removed = false;
 
   @override
   void initState() {
@@ -62,6 +69,7 @@ class _CommunityPostDetailsScreenState
         comments: [
           ..._post.comments,
           Comment(
+            id: 'c_${DateTime.now().microsecondsSinceEpoch}',
             authorName: widget.currentUser.name,
             authorInitials: widget.currentUser.initials,
             text: text,
@@ -74,13 +82,69 @@ class _CommunityPostDetailsScreenState
     _commentController.clear();
   }
 
+  Future<void> _removePost() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Remove this post?'),
+        content: const Text(
+          'This will remove the post for everyone in the community.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            key: const Key('confirmRemovePostButton'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Yes, Remove'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    _removed = true;
+    Navigator.of(context).pop();
+  }
+
+  Future<void> _removeComment(Comment comment) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Remove this comment?'),
+        content: const Text(
+          'This will remove the comment for everyone in the community.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            key: const Key('confirmRemoveCommentButton'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Yes, Remove'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    setState(() {
+      _post = _post.copyWith(
+        comments: _post.comments.where((c) => c.id != comment.id).toList(),
+        commentCount: _post.commentCount - 1,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        Navigator.of(context).pop(_post);
+        Navigator.of(context).pop(_removed ? null : _post);
       },
       child: Scaffold(
         appBar: AppBar(title: const Text('Post')),
@@ -165,6 +229,13 @@ class _CommunityPostDetailsScreenState
                 ],
               ),
             ),
+            if (widget.isModerator)
+              IconButton(
+                key: const Key('removePostButton'),
+                tooltip: 'Remove post',
+                onPressed: _removePost,
+                icon: const Icon(Icons.delete_outline),
+              ),
           ],
         ),
         const SizedBox(height: 12),
@@ -244,6 +315,14 @@ class _CommunityPostDetailsScreenState
                     ],
                   ),
                 ),
+                if (widget.isModerator)
+                  IconButton(
+                    key: Key('removeCommentButton_${comment.id}'),
+                    tooltip: 'Remove comment',
+                    iconSize: 18,
+                    onPressed: () => _removeComment(comment),
+                    icon: const Icon(Icons.delete_outline),
+                  ),
               ],
             ),
           ),

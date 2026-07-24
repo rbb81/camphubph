@@ -17,12 +17,14 @@ final List<HomeFeedItem> sampleHomeFeed = [
     commentCount: 2,
     comments: [
       Comment(
+        id: 'c_post_jasmine_sunrise_1',
         authorName: 'Miguel Ibarra',
         authorInitials: 'MI',
         text: 'That sunrise shot is unreal, where exactly is this?',
         timeAgo: '1h',
       ),
       Comment(
+        id: 'c_post_jasmine_sunrise_2',
         authorName: 'Ate Baby',
         authorInitials: 'AB',
         text: 'Adding this to the wishlist immediately.',
@@ -42,12 +44,14 @@ final List<HomeFeedItem> sampleHomeFeed = [
     commentCount: 2,
     comments: [
       Comment(
+        id: 'c_post_ana_daraitan_1',
         authorName: 'Rico P.',
         authorInitials: 'RP',
         text: 'Taal Lake is criminally underrated for camping, but Daraitan is a classic too.',
         timeAgo: '5h',
       ),
       Comment(
+        id: 'c_post_ana_daraitan_2',
         authorName: 'Ate Baby',
         authorInitials: 'AB',
         text: 'Miss this trail! @MiguelIbarra you still owe me a rematch on that river crossing.',
@@ -81,6 +85,7 @@ final List<HomeFeedItem> sampleHomeFeed = [
     commentCount: 1,
     comments: [
       Comment(
+        id: 'c_post_miguel_taal_1',
         authorName: 'Rico P.',
         authorInitials: 'RP',
         text: 'Taal Lake is criminally underrated for camping.',

@@ -54,6 +54,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
         comments: [
           ..._post.comments,
           Comment(
+            id: 'c_${DateTime.now().microsecondsSinceEpoch}',
             authorName: widget.currentUser.name,
             authorInitials: widget.currentUser.initials,
             text: text,
