@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -9,6 +10,19 @@ import 'package:camper/screens/communities_screen.dart';
 import 'package:camper/screens/discover_screen.dart';
 import 'package:camper/screens/home_screen.dart';
 import 'package:camper/screens/map_screen.dart';
+import 'package:camper/screens/search_screen.dart';
+import 'package:camper/widgets/hashtag_mention_text.dart';
+
+TextSpan? _findSpan(InlineSpan root, String text) {
+  if (root is TextSpan) {
+    if (root.text == text) return root;
+    for (final child in root.children ?? const <InlineSpan>[]) {
+      final found = _findSpan(child, text);
+      if (found != null) return found;
+    }
+  }
+  return null;
+}
 
 Future<void> pumpHomeScreen(WidgetTester tester) async {
   await tester.pumpWidget(
@@ -222,6 +236,32 @@ void main() {
       expect(find.text('Jasmine Reyes'), findsWidgets);
       expect(find.byKey(const Key('followButton')), findsOneWidget);
       expect(find.byKey(const Key('messageUserButton')), findsOneWidget);
+    });
+
+    testWidgets('tapping a hashtag in a caption opens Search pre-filled', (
+      tester,
+    ) async {
+      await pumpHomeScreen(tester);
+
+      final captionFinder = find.byWidgetPredicate(
+        (widget) => widget is HashtagMentionText && widget.text.contains('#Daraitan'),
+      );
+      await tester.scrollUntilVisible(
+        captionFinder,
+        300,
+        scrollable: find.byType(Scrollable),
+      );
+
+      final richText = tester.widget<RichText>(
+        find.descendant(of: captionFinder, matching: find.byType(RichText)),
+      );
+      final span = _findSpan(richText.text as TextSpan, '#Daraitan');
+      expect(span, isNotNull);
+      (span!.recognizer! as TapGestureRecognizer).onTap!();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SearchScreen), findsOneWidget);
+      expect(find.text('Mt. Daraitan campsite'), findsOneWidget);
     });
 
     testWidgets('tapping a suggested user opens their profile', (

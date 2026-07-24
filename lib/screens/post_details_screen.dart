@@ -4,6 +4,7 @@ import '../models/comment.dart';
 import '../models/home_feed_item.dart';
 import '../models/profile.dart';
 import '../theme/app_theme.dart';
+import '../widgets/hashtag_mention_text.dart';
 
 class PostDetailsScreen extends StatefulWidget {
   const PostDetailsScreen({
@@ -132,7 +133,11 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        Text(_post.caption),
+        HashtagMentionText(
+          _post.caption,
+          onHashtagTap: (tag) => openHashtagSearch(context, tag),
+          onMentionTap: (handle) => openMentionedProfile(context, handle),
+        ),
         if (_post.photoBytes != null) ...[
           const SizedBox(height: 12),
           ClipRRect(
@@ -211,7 +216,12 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                         ],
                       ),
                       const SizedBox(height: 2),
-                      Text(comment.text),
+                      HashtagMentionText(
+                        comment.text,
+                        onHashtagTap: (tag) => openHashtagSearch(context, tag),
+                        onMentionTap: (handle) =>
+                            openMentionedProfile(context, handle),
+                      ),
                     ],
                   ),
                 ),

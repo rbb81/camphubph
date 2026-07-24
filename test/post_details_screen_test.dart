@@ -1,10 +1,24 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:camper/data/sample_profile.dart';
 import 'package:camper/models/comment.dart';
 import 'package:camper/models/home_feed_item.dart';
+import 'package:camper/screens/other_user_profile_screen.dart';
 import 'package:camper/screens/post_details_screen.dart';
+import 'package:camper/widgets/hashtag_mention_text.dart';
+
+TextSpan? _findSpan(InlineSpan root, String text) {
+  if (root is TextSpan) {
+    if (root.text == text) return root;
+    for (final child in root.children ?? const <InlineSpan>[]) {
+      final found = _findSpan(child, text);
+      if (found != null) return found;
+    }
+  }
+  return null;
+}
 
 const _post = FriendPostItem(
   id: 'post_test',
@@ -21,6 +35,12 @@ const _post = FriendPostItem(
       authorInitials: 'MI',
       text: 'Amazing shot!',
       timeAgo: '1h',
+    ),
+    Comment(
+      authorName: 'Rico P.',
+      authorInitials: 'RP',
+      text: 'Nice one @MiguelIbarra, we should climb this together next time.',
+      timeAgo: '30m',
     ),
   ],
 );
@@ -123,6 +143,28 @@ void main() {
       await tester.pump();
 
       expect(find.text('1'), findsOneWidget);
+    });
+
+    testWidgets('tapping a mention in a comment opens that person\'s profile', (
+      tester,
+    ) async {
+      await _pumpPostDetailsHost(tester);
+
+      final commentFinder = find.byWidgetPredicate(
+        (widget) =>
+            widget is HashtagMentionText &&
+            widget.text.contains('@MiguelIbarra'),
+      );
+      final richText = tester.widget<RichText>(
+        find.descendant(of: commentFinder, matching: find.byType(RichText)),
+      );
+      final span = _findSpan(richText.text as TextSpan, '@MiguelIbarra');
+      expect(span, isNotNull);
+      (span!.recognizer! as TapGestureRecognizer).onTap!();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(OtherUserProfileScreen), findsOneWidget);
+      expect(find.text('Miguel Ibarra'), findsWidgets);
     });
 
     testWidgets('popping returns the updated post', (tester) async {

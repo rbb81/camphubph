@@ -12,6 +12,7 @@ import '../models/followable_user.dart';
 import '../models/home_feed_item.dart';
 import '../models/profile.dart';
 import '../theme/app_theme.dart';
+import '../widgets/hashtag_mention_text.dart';
 import 'camp_details_screen.dart';
 import 'community_feed_screen.dart';
 import 'create_post_screen.dart';
@@ -380,7 +381,11 @@ class _FriendPostCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            Text(item.caption),
+            HashtagMentionText(
+              item.caption,
+              onHashtagTap: (tag) => openHashtagSearch(context, tag),
+              onMentionTap: (handle) => openMentionedProfile(context, handle),
+            ),
             if (item.photoBytes != null) ...[
               const SizedBox(height: 10),
               ClipRRect(

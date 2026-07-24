@@ -42,6 +42,21 @@ void main() {
       expect(find.text('Mt. Daraitan campsite'), findsOneWidget);
     });
 
+    testWidgets(
+      'an initialQuery pre-fills the field and shows results immediately',
+      (tester) async {
+        tester.view.physicalSize = const Size(800, 2400);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(
+          const MaterialApp(home: SearchScreen(initialQuery: 'Daraitan')),
+        );
+
+        expect(find.text('Mt. Daraitan campsite'), findsOneWidget);
+      },
+    );
+
     testWidgets('tapping a camp result opens Camp Details', (tester) async {
       await pumpSearchScreen(tester);
 

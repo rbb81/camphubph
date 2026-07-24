@@ -37,7 +37,7 @@ final List<HomeFeedItem> sampleHomeFeed = [
     timeAgo: '6h',
     location: 'Mt. Daraitan campsite',
     caption:
-        'First time back at Daraitan since the rainy season ended — river crossing was so much easier this time.',
+        'First time back at Daraitan since the rainy season ended — river crossing was so much easier this time. #Daraitan',
     likeCount: 18,
     commentCount: 2,
     comments: [
@@ -50,7 +50,7 @@ final List<HomeFeedItem> sampleHomeFeed = [
       Comment(
         authorName: 'Ate Baby',
         authorInitials: 'AB',
-        text: 'Miss this trail! Who was your guide this time?',
+        text: 'Miss this trail! @MiguelIbarra you still owe me a rematch on that river crossing.',
         timeAgo: '1h',
       ),
     ],

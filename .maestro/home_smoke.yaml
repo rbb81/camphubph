@@ -5,6 +5,10 @@
 # If the app was built WITH real Supabase credentials, override with a
 # pre-existing, email-confirmed test account instead:
 #   maestro test -e MAESTRO_TEST_EMAIL=you@example.com -e MAESTRO_TEST_PASSWORD=yourpassword .maestro/home_smoke.yaml
+#
+# "#Daraitan" (a hashtag inside Ana Dela Cruz's caption, sample_feed.dart) is
+# tapped as plain rendered text — hashtags/mentions are real text content
+# (HashtagMentionText), not icon-only, so no tooltip-targeting caveat here.
 appId: com.camphubph.camper
 env:
   MAESTRO_TEST_EMAIL: dummy@example.com
@@ -25,5 +29,8 @@ env:
 - assertVisible: "Discover"
 - assertVisible: "Communities"
 - assertVisible: "Profile"
+- tapOn: "#Daraitan"
+- assertVisible: "Mt. Daraitan campsite"
+- back
 - tapOn: "Map"
 - assertVisible: "Map"

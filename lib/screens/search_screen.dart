@@ -26,14 +26,18 @@ extension on _SearchFacet {
 }
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  const SearchScreen({super.key, this.initialQuery});
+
+  /// Pre-fills the query field and shows matching results immediately —
+  /// used when a `#hashtag` tap opens Search already searching for that tag.
+  final String? initialQuery;
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final _queryController = TextEditingController();
+  late final _queryController = TextEditingController(text: widget.initialQuery);
   _SearchFacet _facet = _SearchFacet.all;
 
   @override

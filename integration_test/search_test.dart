@@ -31,6 +31,18 @@ void main() {
     });
 
     testWidgets(
+      'an initialQuery pre-fills the field and shows results immediately',
+      (tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(home: SearchScreen(initialQuery: 'Daraitan')),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Mt. Daraitan campsite'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
       'typing a community name and tapping it opens Community Feed',
       (tester) async {
         await pumpSearchScreen(tester);

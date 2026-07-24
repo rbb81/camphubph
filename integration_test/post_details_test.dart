@@ -1,10 +1,14 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'package:camper/data/sample_profile.dart';
+import 'package:camper/models/comment.dart';
 import 'package:camper/models/home_feed_item.dart';
+import 'package:camper/screens/other_user_profile_screen.dart';
 import 'package:camper/screens/post_details_screen.dart';
+import 'package:camper/widgets/hashtag_mention_text.dart';
 
 const _post = FriendPostItem(
   id: 'post_test',
@@ -15,7 +19,26 @@ const _post = FriendPostItem(
   caption: 'Made it to the summit just in time for sunrise.',
   likeCount: 24,
   commentCount: 0,
+  comments: [
+    Comment(
+      authorName: 'Rico P.',
+      authorInitials: 'RP',
+      text: 'Nice one @MiguelIbarra, we should climb this together next time.',
+      timeAgo: '30m',
+    ),
+  ],
 );
+
+TextSpan? _findSpan(InlineSpan root, String text) {
+  if (root is TextSpan) {
+    if (root.text == text) return root;
+    for (final child in root.children ?? const <InlineSpan>[]) {
+      final found = _findSpan(child, text);
+      if (found != null) return found;
+    }
+  }
+  return null;
+}
 
 Future<void> pumpPostDetailsScreen(WidgetTester tester) async {
   await tester.pumpWidget(
@@ -52,6 +75,27 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Nice one!'), findsOneWidget);
+    });
+
+    testWidgets("tapping a mention in a comment opens that person's profile", (
+      tester,
+    ) async {
+      await pumpPostDetailsScreen(tester);
+
+      final commentFinder = find.byWidgetPredicate(
+        (widget) =>
+            widget is HashtagMentionText &&
+            widget.text.contains('@MiguelIbarra'),
+      );
+      final richText = tester.widget<RichText>(
+        find.descendant(of: commentFinder, matching: find.byType(RichText)),
+      );
+      final span = _findSpan(richText.text as TextSpan, '@MiguelIbarra');
+      (span!.recognizer! as TapGestureRecognizer).onTap!();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(OtherUserProfileScreen), findsOneWidget);
+      expect(find.text('Miguel Ibarra'), findsWidgets);
     });
   });
 }

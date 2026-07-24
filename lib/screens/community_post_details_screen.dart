@@ -4,6 +4,7 @@ import '../models/comment.dart';
 import '../models/community_post.dart';
 import '../models/profile.dart';
 import '../theme/app_theme.dart';
+import '../widgets/hashtag_mention_text.dart';
 
 /// Mirrors `post_details_screen.dart`'s shape (like toggle, flat comment
 /// list, composer) for a `CommunityFeedPost` instead of a `FriendPostItem` —
@@ -167,7 +168,11 @@ class _CommunityPostDetailsScreenState
           ],
         ),
         const SizedBox(height: 12),
-        Text(_post.body),
+        HashtagMentionText(
+          _post.body,
+          onHashtagTap: (tag) => openHashtagSearch(context, tag),
+          onMentionTap: (handle) => openMentionedProfile(context, handle),
+        ),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -230,7 +235,12 @@ class _CommunityPostDetailsScreenState
                         ],
                       ),
                       const SizedBox(height: 2),
-                      Text(comment.text),
+                      HashtagMentionText(
+                        comment.text,
+                        onHashtagTap: (tag) => openHashtagSearch(context, tag),
+                        onMentionTap: (handle) =>
+                            openMentionedProfile(context, handle),
+                      ),
                     ],
                   ),
                 ),

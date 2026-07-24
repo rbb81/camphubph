@@ -47,7 +47,7 @@ final List<CommunityFeedPost> sampleCommunityPosts = [
     timeAgo: '5h',
     body:
         'Ran the Tanay-Daraitan loop yesterday in a stock Vitara — doable but '
-        'the last river crossing needs a snorkel if it rains upstream.',
+        'the last river crossing needs a snorkel if it rains upstream. #Overlanding',
     likeCount: 18,
     commentCount: 3,
   ),

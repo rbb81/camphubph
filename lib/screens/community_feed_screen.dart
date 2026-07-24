@@ -7,6 +7,7 @@ import '../models/community.dart';
 import '../models/community_member.dart';
 import '../models/community_post.dart';
 import '../theme/app_theme.dart';
+import '../widgets/hashtag_mention_text.dart';
 import 'community_post_details_screen.dart';
 
 class CommunityFeedScreen extends StatefulWidget {
@@ -431,7 +432,11 @@ class _CommunityPostCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          Text(post.body),
+          HashtagMentionText(
+            post.body,
+            onHashtagTap: (tag) => openHashtagSearch(context, tag),
+            onMentionTap: (handle) => openMentionedProfile(context, handle),
+          ),
           const SizedBox(height: 10),
           Row(
             children: [
