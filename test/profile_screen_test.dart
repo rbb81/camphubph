@@ -73,15 +73,26 @@ void main() {
       },
     );
 
-    testWidgets('tapping followers stat shows a coming-soon message', (
+    testWidgets('tapping the followers stat opens the Followers list', (
       tester,
     ) async {
       await pumpProfileScreen(tester);
 
       await tester.tap(find.byKey(const Key('followerStat')));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
-      expect(find.text('Followers list is coming soon.'), findsOneWidget);
+      expect(find.text('Followers'), findsOneWidget);
+    });
+
+    testWidgets('tapping the following stat opens the Following list', (
+      tester,
+    ) async {
+      await pumpProfileScreen(tester);
+
+      await tester.tap(find.byKey(const Key('followingStat')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Following'), findsOneWidget);
     });
 
     testWidgets('switching tabs shows the matching sample content', (

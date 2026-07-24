@@ -25,6 +25,28 @@ void main() {
       expect(find.text('Wishlist'), findsOneWidget);
     });
 
+    testWidgets('tapping the followers stat opens the Followers list', (
+      tester,
+    ) async {
+      await pumpProfileScreen(tester);
+
+      await tester.tap(find.byKey(const Key('followerStat')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Followers'), findsOneWidget);
+    });
+
+    testWidgets('tapping the following stat opens the Following list', (
+      tester,
+    ) async {
+      await pumpProfileScreen(tester);
+
+      await tester.tap(find.byKey(const Key('followingStat')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Following'), findsOneWidget);
+    });
+
     testWidgets(
       'editing the profile from within Settings updates Profile on return',
       (tester) async {

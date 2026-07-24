@@ -10,6 +10,10 @@ import '../models/profile.dart';
 /// `sample_reservations.dart`/`sample_message_threads.dart`, since Home
 /// Feed and Other User Profile are independently-pushed screens that both
 /// need to see and update the same follow state.
+///
+/// `followsMe: true` seeds this app's Followers list (see
+/// `follow_list_screen.dart`) — fixed data, not a computed relationship,
+/// since there's no real reverse-follow graph.
 final List<FollowableUser> sampleOtherUsers = [
   const FollowableUser(
     profile: UserProfile(
@@ -21,6 +25,7 @@ final List<FollowableUser> sampleOtherUsers = [
       followerCount: 1240,
       followingCount: 180,
     ),
+    followsMe: true,
   ),
   const FollowableUser(
     profile: UserProfile(
@@ -43,6 +48,7 @@ final List<FollowableUser> sampleOtherUsers = [
       followerCount: 5200,
       followingCount: 95,
     ),
+    followsMe: true,
   ),
   const FollowableUser(
     profile: UserProfile(
@@ -54,6 +60,7 @@ final List<FollowableUser> sampleOtherUsers = [
       followerCount: 610,
       followingCount: 340,
     ),
+    followsMe: true,
   ),
   const FollowableUser(
     profile: UserProfile(

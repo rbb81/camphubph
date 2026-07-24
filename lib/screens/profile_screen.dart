@@ -9,6 +9,7 @@ import '../models/profile.dart';
 import '../theme/app_theme.dart';
 import 'camp_details_screen.dart';
 import 'edit_profile_screen.dart';
+import 'follow_list_screen.dart';
 import 'profile_item_detail_screen.dart';
 import 'settings_screen.dart';
 
@@ -46,10 +47,10 @@ class _ProfileScreenState extends State<ProfileScreen>
     super.dispose();
   }
 
-  void _comingSoon(String feature) {
-    ScaffoldMessenger.of(
+  void _openFollowList(FollowListType type) {
+    Navigator.of(
       context,
-    ).showSnackBar(SnackBar(content: Text('$feature is coming soon.')));
+    ).push(MaterialPageRoute(builder: (_) => FollowListScreen(type: type)));
   }
 
   Future<void> _openEditProfile() async {
@@ -291,14 +292,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                     key: const Key('followerStat'),
                     count: _profile.followerCount,
                     label: 'Followers',
-                    onTap: () => _comingSoon('Followers list'),
+                    onTap: () => _openFollowList(FollowListType.followers),
                   ),
                   const SizedBox(width: 24),
                   _StatColumn(
                     key: const Key('followingStat'),
                     count: _profile.followingCount,
                     label: 'Following',
-                    onTap: () => _comingSoon('Following list'),
+                    onTap: () => _openFollowList(FollowListType.following),
                   ),
                 ],
               ),
