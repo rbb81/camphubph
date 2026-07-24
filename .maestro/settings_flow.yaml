@@ -1,0 +1,34 @@
+# Reached via Profile's gear icon, which now has tooltip: 'Settings'
+# (profile_screen.dart) so Maestro can address it by that label — though
+# whether Maestro's text matcher actually picks up a Tooltip's semantics
+# field is unverified, same standing caveat as map_smoke.yaml's marker
+# tooltips (no Android/iOS emulator available in this environment to run
+# this flow and confirm).
+#
+# "Log Out" (the row) vs "Yes, Log Out" (the dialog's confirm action) use
+# deliberately distinct text so tapOn: "Log Out" can't ambiguously match
+# both — same anchoring precaution as notifications_flow.yaml's
+# ^Accept$/^Decline$.
+appId: com.camphubph.camper
+env:
+  MAESTRO_TEST_EMAIL: dummy@example.com
+  MAESTRO_TEST_PASSWORD: dummy-password
+---
+- launchApp
+- tapOn: "Log in"
+- tapOn: "name@example.com"
+- inputText: ${MAESTRO_TEST_EMAIL}
+- tapOn: "Your password"
+- inputText: ${MAESTRO_TEST_PASSWORD}
+- tapOn:
+    text: "Log in"
+    index: 1
+- tapOn: "Profile"
+- tapOn: "Settings"
+- assertVisible: "Appearance"
+- tapOn: "Dark"
+- tapOn: "Push notifications"
+- tapOn: "Log Out"
+- assertVisible: "Log out?"
+- tapOn: "Yes, Log Out"
+- assertVisible: "Log in"

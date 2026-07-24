@@ -6,10 +6,9 @@
 # pre-existing, email-confirmed test account instead:
 #   maestro test -e MAESTRO_TEST_EMAIL=you@example.com -e MAESTRO_TEST_PASSWORD=yourpassword .maestro/profile_smoke.yaml
 #
-# Note: this flow only taps visible-text elements, same as home_smoke.yaml —
-# the header's icon-only Settings button isn't targeted here since Maestro
-# addresses elements by visible text/accessibility label, and that button
-# currently has neither (see profile_screen.dart's settingsButton IconButton).
+# Note: the header's icon-only Settings button now has a tooltip and its
+# own dedicated flow (see settings_flow.yaml) — not exercised here to keep
+# this flow's scope to Profile's own content tabs.
 # Also covers the tab-item detail views added afterward: Posts opens a
 # lightweight Post detail, and Wishlist/Completed Trips open Camp Details
 # (Completed Trips via its own "View Camp" button, since the sample trip

@@ -2,7 +2,7 @@
 
 Camper is a camping-community app for the Philippines — discover camps, share trips, and connect with other campers. Built with Flutter so the same codebase targets web, Android, and iOS. Product/UX planning docs live in [`docs/`](docs/).
 
-Currently implemented (see [docs/ux/wireframes.md](docs/ux/wireframes.md) for the full per-screen spec and status): registration, login, and forgot-password screens (responsive, web + mobile) wired to Supabase Auth; a Home Feed (mixed feed, create post, likes/comments, bottom tab bar); Notifications (follow requests, likes, comments); a global Search screen (camps, communities, people, locations, activities) reachable from Home/Discover/Communities; Discover → Camp Results → Camp Details (with a working Reviews/write-a-review flow); a Map screen showing a pin for every campsite (OpenStreetMap via `flutter_map`, no API key needed); Communities → Community Feed, plus creating a new community with a public/private setting; and a Profile screen (own-profile view + Edit Profile form). All content screens render from static sample data (`lib/data/`) — there's no real Supabase schema for posts/camps/reviews/communities/profiles/notifications yet.
+Currently implemented (see [docs/ux/wireframes.md](docs/ux/wireframes.md) for the full per-screen spec and status): registration, login, and forgot-password screens (responsive, web + mobile) wired to Supabase Auth; a Home Feed (mixed feed, create post, likes/comments, bottom tab bar); Notifications (follow requests, likes, comments); a global Search screen (camps, communities, people, locations, activities) reachable from Home/Discover/Communities; Discover → Camp Results → Camp Details (with a working Reviews/write-a-review flow); a Map screen showing a pin for every campsite (OpenStreetMap via `flutter_map`, no API key needed); Communities → Community Feed, plus creating a new community with a public/private setting; a Profile screen (own-profile view + Edit Profile form); and a Settings screen (live Light/Dark/System theme switching, session-only notification/privacy toggles, Log Out). All content screens render from static sample data (`lib/data/`) — there's no real Supabase schema for posts/camps/reviews/communities/profiles/notifications yet.
 
 ## Prerequisites
 
@@ -80,13 +80,17 @@ There's no `posts`/`camps` schema in Supabase yet, so the feed renders from stat
 
 ## Profile
 
-[`lib/screens/profile_screen.dart`](lib/screens/profile_screen.dart) is reached by tapping **Profile** in Home's bottom tab bar (`/profile` route). It's the own-profile view only — cover photo + overlapping avatar, bio, experience-level badge, favorite camping-style tags, follower/following counts, and a sticky tab bar (Posts / Photos / Reviews / Saved Camps / Wishlist / Completed Trips). Tapping a tab item now opens something real: Posts and Photos open a lightweight read-only detail view ([`lib/screens/profile_item_detail_screen.dart`](lib/screens/profile_item_detail_screen.dart)'s `ProfileSimpleDetailScreen`) of that item's existing caption/timeAgo — there's no real image data behind the Photos tab yet, so its detail view shows a placeholder icon instead of a photo. Reviews opens a similar detail view with a star rating (`ReviewDetailScreen`). Saved Camps and Wishlist open the real Camp Details screen, matching by name against `sampleCamps` with a synthesized placeholder `Camp` if no match is found. Completed Trips opens a simple read-only trip summary (`CompletedTripDetailScreen` — camp name, date, and a "View Camp" button; no Cancel option, unlike a real `Trip`) since this tab's sample data has no linked dates or camp id. Settings and the Followers/Following counts still show a "coming soon" message.
+[`lib/screens/profile_screen.dart`](lib/screens/profile_screen.dart) is reached by tapping **Profile** in Home's bottom tab bar (`/profile` route). It's the own-profile view only — cover photo + overlapping avatar, bio, experience-level badge, favorite camping-style tags, follower/following counts, and a sticky tab bar (Posts / Photos / Reviews / Saved Camps / Wishlist / Completed Trips). Tapping a tab item now opens something real: Posts and Photos open a lightweight read-only detail view ([`lib/screens/profile_item_detail_screen.dart`](lib/screens/profile_item_detail_screen.dart)'s `ProfileSimpleDetailScreen`) of that item's existing caption/timeAgo — there's no real image data behind the Photos tab yet, so its detail view shows a placeholder icon instead of a photo. Reviews opens a similar detail view with a star rating (`ReviewDetailScreen`). Saved Camps and Wishlist open the real Camp Details screen, matching by name against `sampleCamps` with a synthesized placeholder `Camp` if no match is found. Completed Trips opens a simple read-only trip summary (`CompletedTripDetailScreen` — camp name, date, and a "View Camp" button; no Cancel option, unlike a real `Trip`) since this tab's sample data has no linked dates or camp id. The Followers/Following counts still show a "coming soon" message; the gear icon opens the real Settings screen (see below).
 
 There's no `profiles` schema in Supabase yet either, so this renders from static sample data in [`lib/data/sample_profile.dart`](lib/data/sample_profile.dart) (modeled by [`lib/models/profile.dart`](lib/models/profile.dart)).
 
 The cover photo intentionally bleeds edge-to-edge under the status bar (no `AppBar`, `SafeArea(top: false)` on the body) — an `AnnotatedRegion<SystemUiOverlayStyle>` makes the status bar itself transparent with light icons so it blends with the cover instead of showing as an opaque bar on top of it. The back/settings icon buttons are still individually wrapped in their own `SafeArea` so they land below a notch/status bar rather than under it.
 
 Tapping **Edit Profile** opens [`lib/screens/edit_profile_screen.dart`](lib/screens/edit_profile_screen.dart), a real working form — name/bio text fields, an experience-level selector, and favorite-style tag chips, plus avatar/cover photo pickers via [`image_picker`](https://pub.dev/packages/image_picker). There's no Supabase Storage configured yet, so picked images are only held in memory for the current session (not uploaded anywhere) and are lost on reload.
+
+## Settings
+
+[`lib/screens/settings_screen.dart`](lib/screens/settings_screen.dart) is reached via Profile's gear icon. Appearance's Light/Dark/System selector **genuinely retheme the whole app live** — the first piece of global reactive app state in this codebase, via a top-level `themeModeNotifier` (`lib/theme/app_theme.dart`) that `CamperApp`'s `MaterialApp` listens to. Notifications and Privacy toggles are backed by a new shared mutable `AppSettings` object ([`lib/data/sample_settings.dart`](lib/data/sample_settings.dart)) — they persist for the session (survive leaving/returning to Settings) but reset on app restart and don't gate any real behavior yet, since there's no backend to enforce them. Account reuses the existing Edit Profile screen rather than duplicating fields. Log Out shows a confirmation dialog (this app's first `AlertDialog`) before clearing `AuthService.instance.currentSession` and returning to Landing. Support rows are cosmetic-only stubs; there's no Delete Account.
 
 ## Testing
 
@@ -107,7 +111,7 @@ flutter test test/register_screen_test.dart
 Covers:
 - [`test/register_screen_test.dart`](test/register_screen_test.dart) — required-field errors, invalid email format, mismatched password/confirm password, a fully valid submit succeeding via the dummy auth fallback, account-type toggle defaults to Camper and a Camp Owner submission still succeeds, Campsite name only appears (and Full name relabels to Host name) for Camp Owner, submitting Camp Owner without a campsite name shows a validation error
 - [`test/login_screen_test.dart`](test/login_screen_test.dart) — required-field errors, invalid email format, valid submit navigating to `/home` via the dummy auth fallback, navigation to `/forgot-password` and `/register`, a camp-owner account routes to `/owner-home` instead
-- [`test/auth_service_test.dart`](test/auth_service_test.dart) — pure unit tests for the dummy-mode role round trip: sign up as camp owner/camper then sign in returns an `AuthResult` with the matching `UserRole`, an unregistered email defaults to camper, a campsite name round-trips through sign-in and populates `AuthService.currentSession`
+- [`test/auth_service_test.dart`](test/auth_service_test.dart) — pure unit tests for the dummy-mode role round trip: sign up as camp owner/camper then sign in returns an `AuthResult` with the matching `UserRole`, an unregistered email defaults to camper, a campsite name round-trips through sign-in and populates `AuthService.currentSession`, `signOut` clears it
 - [`test/camp_owner_dashboard_screen_test.dart`](test/camp_owner_dashboard_screen_test.dart) — with no signed-in session renders demo placeholder business info (distinct from camper Profile — no Followers/Following); with a signed-in session renders the real campsite/host name and email; seeded reservations render; Confirm/Decline flips a pending reservation's status and updates `sampleReservations`; Add Reservation appends a new card; seeded message threads render with a last-message preview; opening a thread and replying as owner updates `sampleMessageThreads` and the preview
 - [`test/add_reservation_screen_test.dart`](test/add_reservation_screen_test.dart) — required-field validation, a fully valid submit pops a `Reservation` and appends it to `sampleReservations`
 - [`test/forgot_password_screen_test.dart`](test/forgot_password_screen_test.dart) — empty/invalid email validation, valid submit succeeding via the dummy auth fallback, navigation back to `/login`
@@ -130,8 +134,9 @@ Covers:
 - [`test/trip_planner_screen_test.dart`](test/trip_planner_screen_test.dart) — seeded trips grouped into Upcoming/Past and sorted by date, tap-through to Trip Details, canceling a trip removes it and shows a confirmation snackbar, empty state
 - [`test/trip_details_screen_test.dart`](test/trip_details_screen_test.dart) — camp/dates/length-of-stay render, View Camp opens Camp Details for the same camp, Cancel Trip removes it from `sampleTrips` and pops `true`
 - [`test/trip_test.dart`](test/trip_test.dart) — pure unit tests for `Trip.rangesOverlap`/`Trip.findConflict`'s date-range overlap logic
-- [`test/profile_screen_test.dart`](test/profile_screen_test.dart) — identity block and tab labels render, settings/follower-stat "coming soon" messages, switching tabs shows matching sample content, tapping a post/photo/review opens its detail view, tapping a saved camp or wishlist item opens Camp Details (falling back to a placeholder Camp if unmatched), tapping a completed trip opens a read-only trip summary whose View Camp button opens Camp Details, Edit Profile and Trip Planner navigation
+- [`test/profile_screen_test.dart`](test/profile_screen_test.dart) — identity block and tab labels render, follower-stat "coming soon" messages, switching tabs shows matching sample content, tapping a post/photo/review opens its detail view, tapping a saved camp or wishlist item opens Camp Details (falling back to a placeholder Camp if unmatched), tapping a completed trip opens a read-only trip summary whose View Camp button opens Camp Details, Edit Profile and Trip Planner navigation, opening Settings and editing the profile from within it updates Profile on return
 - [`test/edit_profile_screen_test.dart`](test/edit_profile_screen_test.dart) — form pre-populates from the passed profile, name validation, style-chip toggling, avatar/cover picker buttons don't crash, Save pops with the edited profile
+- [`test/settings_screen_test.dart`](test/settings_screen_test.dart) — all grouped sections render, selecting a theme segment live-updates `themeModeNotifier`, toggling a Notifications/Privacy switch flips `sampleSettings` and persists across leaving/returning, Log Out's confirmation dialog Cancel vs. confirm (confirm clears the session and navigates to `'/'`)
 - [`test/widget_test.dart`](test/widget_test.dart) — landing screen → registration navigation, "Preview Camp Owner View (test)" → Camp Owner Dashboard navigation
 
 ### 2. Maestro end-to-end flows
@@ -246,6 +251,12 @@ On Windows, run that inside WSL or Git Bash, then make sure `~/.maestro/bin` (or
    Opens Notifications from Home's bell icon, checks a seeded follow request renders, accepts it (flips to an "Accepted" chip), declines the other seeded request (flips to "Declined"), then taps "Mark all as read". `^Accept$`/`^Decline$` are regex-anchored since once one request is resolved, its own chip text ("Accepted"/"Declined") would otherwise partially match the other still-pending button.
 
    ```bash
+   maestro test .maestro/settings_flow.yaml
+   ```
+
+   Opens Settings from Profile's gear icon (tapped by its `Tooltip` label — same unverified-Tooltip-matching caveat as `search_flow.yaml`/`map_smoke.yaml`), selects Dark, flips the "Push notifications" toggle, then logs out via the confirmation dialog ("Log Out" the row vs. "Yes, Log Out" the dialog's confirm action use deliberately distinct text so the taps can't collide) and checks it lands back at Login.
+
+   ```bash
    maestro test .maestro/camp_owner_register_flow.yaml
    maestro test .maestro/camp_owner_dashboard_smoke.yaml
    ```
@@ -284,7 +295,7 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    chromedriver --port=4444
    ```
 
-3. In another terminal, run a flow. Every file below has been run against a real Chrome window in this environment (chromedriver 150.x) — **all 25 currently pass**:
+3. In another terminal, run a flow. Every file below has been run against a real Chrome window in this environment (chromedriver 150.x) — **all 26 currently pass**:
 
    ```bash
    flutter drive --driver=test_driver/integration_test.dart --target=integration_test/<file>.dart -d chrome
@@ -304,8 +315,9 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    | `schedule_trip_test.dart`, `trip_planner_test.dart`, `trip_details_test.dart` | Missing-dates and overlapping-range conflict validation; a valid range pops a `Trip` and appends it to `sampleTrips`; seeded trips render grouped/sorted on Trip Planner; a full round trip — schedule from Camp Details, confirm the snackbar, see it on a freshly-pumped Trip Planner; canceling a trip from Trip Details removes it from the list; Trip Details' View Camp opens Camp Details for the same camp. |
    | `create_post_test.dart`, `post_details_test.dart` | Caption validation and cancel; like toggle and adding a comment updates the thread. |
    | `notifications_test.dart` | Pumps `NotificationsScreen` directly (same pattern as `home_test.dart`); seeded notifications render; accepting a follow request shows an Accepted chip; tapping a like notification opens Post Details; Mark all as read clears the unread indicators. |
-   | `profile_test.dart`, `edit_profile_test.dart` | Identity block/tabs render, tab switching, Edit Profile and Trip Planner navigation; tapping a post opens its detail view, a saved camp opens Camp Details, and a completed trip opens its detail view whose View Camp button falls back to a placeholder Camp; form pre-populates and validates. |
+   | `profile_test.dart`, `edit_profile_test.dart` | Identity block/tabs render, tab switching, Edit Profile and Trip Planner navigation, editing the profile from within Settings updates Profile on return; tapping a post opens its detail view, a saved camp opens Camp Details, and a completed trip opens its detail view whose View Camp button falls back to a placeholder Camp; form pre-populates and validates. |
    | `communities_test.dart`, `community_feed_test.dart`, `create_community_test.dart` | Your/Suggested sections, join/leave, tap-through to Community Feed, create-community flow; pinned posts, Rules/Members tabs, like toggle, compose; name/description validation and Public/Private toggle. |
+   | `settings_test.dart` | All grouped sections render; selecting Dark live-updates `themeModeNotifier`; toggling Follow requests flips `sampleSettings`; Log Out's confirmation dialog clears the session and navigates away. |
 
    One run of `profile_test.dart` previously hit a transient `AppConnectionException` while waiting for the debug service to connect — a plain retry succeeded, so treat that as flaky rather than a real failure if it recurs.
 
@@ -344,8 +356,8 @@ lib/config/env.dart         reads SUPABASE_URL / SUPABASE_ANON_KEY
 lib/services/auth_service.dart  Supabase Auth, with a dummy fallback when unconfigured
 lib/theme/app_theme.dart    light/dark theme (nature-inspired palette)
 lib/widgets/auth_layout.dart shared layout for register/login/forgot-password
-lib/screens/                landing, auth, home, notifications, search, discover/camp results/camp details/write review, map, schedule trip/trip planner/trip details, create post/post details, communities/community feed/create community, profile/edit profile screens
-lib/models/                 content types (HomeFeedItem, AppNotification, Camp, Review, Comment, Profile, Trip, Community, CommunityMember, CommunityPost)
+lib/screens/                landing, auth, home, notifications, search, discover/camp results/camp details/write review, map, schedule trip/trip planner/trip details, create post/post details, communities/community feed/create community, profile/edit profile/settings screens
+lib/models/                 content types (HomeFeedItem, AppNotification, Camp, Review, Comment, Profile, Trip, Community, CommunityMember, CommunityPost, AppSettings)
 lib/data/                   placeholder sample content for every screen above (no matching Supabase schema yet)
 test/                       unit/widget tests
 integration_test/           Flutter driver end-to-end tests (web)

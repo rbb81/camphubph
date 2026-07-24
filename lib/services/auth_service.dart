@@ -98,6 +98,13 @@ class AuthService {
     return Supabase.instance.client.auth.resetPasswordForEmail(email);
   }
 
+  Future<void> signOut() async {
+    if (Env.isConfigured) {
+      await Supabase.instance.client.auth.signOut();
+    }
+    currentSession = null;
+  }
+
   Future<void> _dummyDelay() =>
       Future.delayed(const Duration(milliseconds: 500));
 

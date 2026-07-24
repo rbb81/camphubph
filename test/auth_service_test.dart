@@ -78,5 +78,17 @@ void main() {
         expect(AuthService.instance.currentSession, same(result));
       },
     );
+
+    test('signOut clears currentSession', () async {
+      await AuthService.instance.signIn(
+        email: _uniqueEmail('to-sign-out'),
+        password: 'password123',
+      );
+      expect(AuthService.instance.currentSession, isNotNull);
+
+      await AuthService.instance.signOut();
+
+      expect(AuthService.instance.currentSession, isNull);
+    });
   });
 }

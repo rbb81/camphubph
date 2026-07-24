@@ -32,26 +32,29 @@ class CamperApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Camper',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const LandingScreen(),
-        '/register': (context) => const RegisterScreen(),
-        '/login': (context) => const LoginScreen(),
-        '/forgot-password': (context) => const ForgotPasswordScreen(),
-        '/home': (context) => const HomeScreen(),
-        '/owner-home': (context) => const CampOwnerDashboardScreen(),
-        '/discover': (context) => const DiscoverScreen(),
-        '/map': (context) => const MapScreen(),
-        '/communities': (context) => const CommunitiesScreen(),
-        '/profile': (context) => const ProfileScreen(),
-        '/trips': (context) => const TripPlannerScreen(),
-      },
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeModeNotifier,
+      builder: (context, mode, _) => MaterialApp(
+        title: 'Camper',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: mode,
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const LandingScreen(),
+          '/register': (context) => const RegisterScreen(),
+          '/login': (context) => const LoginScreen(),
+          '/forgot-password': (context) => const ForgotPasswordScreen(),
+          '/home': (context) => const HomeScreen(),
+          '/owner-home': (context) => const CampOwnerDashboardScreen(),
+          '/discover': (context) => const DiscoverScreen(),
+          '/map': (context) => const MapScreen(),
+          '/communities': (context) => const CommunitiesScreen(),
+          '/profile': (context) => const ProfileScreen(),
+          '/trips': (context) => const TripPlannerScreen(),
+        },
+      ),
     );
   }
 }

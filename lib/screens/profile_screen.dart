@@ -10,6 +10,7 @@ import '../theme/app_theme.dart';
 import 'camp_details_screen.dart';
 import 'edit_profile_screen.dart';
 import 'profile_item_detail_screen.dart';
+import 'settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -55,6 +56,15 @@ class _ProfileScreenState extends State<ProfileScreen>
     final result = await Navigator.of(context).push<UserProfile>(
       MaterialPageRoute(builder: (_) => EditProfileScreen(profile: _profile)),
     );
+    if (result != null) {
+      setState(() => _profile = result);
+    }
+  }
+
+  Future<void> _openSettings() async {
+    final result = await Navigator.of(
+      context,
+    ).push<UserProfile>(MaterialPageRoute(builder: (_) => const SettingsScreen()));
     if (result != null) {
       setState(() => _profile = result);
     }
@@ -235,7 +245,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                       Icons.settings_outlined,
                       color: Colors.white,
                     ),
-                    onPressed: () => _comingSoon('Settings'),
+                    tooltip: 'Settings',
+                    onPressed: _openSettings,
                   ),
                 ),
               ),

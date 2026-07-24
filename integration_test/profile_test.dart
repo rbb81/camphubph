@@ -25,14 +25,32 @@ void main() {
       expect(find.text('Wishlist'), findsOneWidget);
     });
 
-    testWidgets('settings shows a coming-soon message', (tester) async {
-      await pumpProfileScreen(tester);
+    testWidgets(
+      'editing the profile from within Settings updates Profile on return',
+      (tester) async {
+        await pumpProfileScreen(tester);
 
-      await tester.tap(find.byKey(const Key('settingsButton')));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('settingsButton')));
+        await tester.pumpAndSettle();
 
-      expect(find.text('Settings is coming soon.'), findsOneWidget);
-    });
+        await tester.tap(find.byKey(const Key('editProfileTile')));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.byKey(const Key('nameField')),
+          'Updated Name',
+        );
+        await tester.ensureVisible(find.byKey(const Key('saveProfileButton')));
+        await tester.tap(find.byKey(const Key('saveProfileButton')));
+        await tester.pumpAndSettle();
+
+        // Back on Settings now; leaving it should carry the edit up to Profile.
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+
+        expect(find.text('Updated Name'), findsOneWidget);
+      },
+    );
 
     testWidgets('switching tabs shows the matching sample content', (
       tester,

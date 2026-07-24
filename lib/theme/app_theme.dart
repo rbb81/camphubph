@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// The single piece of global reactive app state in this codebase. Screens
+/// read the current value via [ValueListenableBuilder]; [CamperApp] (in
+/// main.dart) rebuilds its [MaterialApp] when it changes, live-retheming
+/// the whole app. Everything else here is per-screen sample data (see
+/// CLAUDE.md) — this exists because a theme choice has to affect the
+/// [MaterialApp] root, which no screen can reach via a shared list/object.
+final ValueNotifier<ThemeMode> themeModeNotifier = ValueNotifier(
+  ThemeMode.system,
+);
+
 class AppColors {
   AppColors._();
 
