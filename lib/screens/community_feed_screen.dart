@@ -7,6 +7,7 @@ import '../models/community.dart';
 import '../models/community_member.dart';
 import '../models/community_post.dart';
 import '../theme/app_theme.dart';
+import 'community_post_details_screen.dart';
 
 class CommunityFeedScreen extends StatefulWidget {
   const CommunityFeedScreen({super.key, required this.community});
@@ -43,12 +44,6 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen>
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  void _comingSoon(String feature) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('$feature is coming soon.')));
   }
 
   void _toggleJoin() {
@@ -114,6 +109,21 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen>
         likeCount: post.isLiked ? post.likeCount - 1 : post.likeCount + 1,
       );
     });
+  }
+
+  Future<void> _openPostDetails(CommunityFeedPost post) async {
+    final updated = await Navigator.of(context).push<CommunityFeedPost>(
+      MaterialPageRoute(
+        builder: (_) => CommunityPostDetailsScreen(
+          post: post,
+          currentUser: sampleProfile,
+        ),
+      ),
+    );
+    if (updated != null) {
+      final index = _posts.indexWhere((p) => p.id == updated.id);
+      if (index != -1) setState(() => _posts[index] = updated);
+    }
   }
 
   Future<void> _composePost() async {
@@ -270,7 +280,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen>
                     posts: orderedPosts,
                     onLike: (post) =>
                         _toggleLike(_posts.indexWhere((p) => p.id == post.id)),
-                    onComment: () => _comingSoon('Comments'),
+                    onComment: _openPostDetails,
                   ),
                   _RulesTab(rules: _community.rules),
                   _MembersTab(members: _members),
@@ -299,7 +309,7 @@ class _FeedTab extends StatelessWidget {
 
   final List<CommunityFeedPost> posts;
   final ValueChanged<CommunityFeedPost> onLike;
-  final VoidCallback onComment;
+  final ValueChanged<CommunityFeedPost> onComment;
 
   @override
   Widget build(BuildContext context) {
@@ -320,7 +330,7 @@ class _FeedTab extends StatelessWidget {
         return _CommunityPostCard(
           post: post,
           onLike: () => onLike(post),
-          onComment: onComment,
+          onComment: () => onComment(post),
         );
       },
     );
@@ -440,13 +450,16 @@ class _CommunityPostCard extends StatelessWidget {
               ),
               Text('${post.likeCount}'),
               const SizedBox(width: 12),
-              InkWell(
-                key: Key('communityCommentButton_${post.id}'),
-                onTap: onComment,
-                customBorder: const CircleBorder(),
-                child: const Padding(
-                  padding: EdgeInsets.all(4),
-                  child: Icon(Icons.mode_comment_outlined, size: 18),
+              Tooltip(
+                message: 'Comment',
+                child: InkWell(
+                  key: Key('communityCommentButton_${post.id}'),
+                  onTap: onComment,
+                  customBorder: const CircleBorder(),
+                  child: const Padding(
+                    padding: EdgeInsets.all(4),
+                    child: Icon(Icons.mode_comment_outlined, size: 18),
+                  ),
                 ),
               ),
               Text('${post.commentCount}'),

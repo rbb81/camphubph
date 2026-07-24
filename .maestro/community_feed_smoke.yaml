@@ -8,6 +8,15 @@
 # The final "^Post$" tap is regex-anchored for an exact match — "Post" alone
 # would also partially match the compose sheet's "Post to Luzon Overlanders"
 # heading (Maestro's plain-string text selector partial-matches by default).
+#
+# The comment icon on Rico Fernandez's pinned post is targeted by its new
+# `Tooltip(message: 'Comment')` (community_feed_screen.dart) — it had no
+# text/accessibility label before this flow needed to address it, same
+# icon-only-needs-a-tooltip gap fixed for other features' icon buttons. Every
+# post row shares that same "Comment" tooltip text, so `index: 0` picks the
+# first one — the pinned post, which sorts above regular posts in this feed
+# — same index-disambiguation precedent as follow_list_flow.yaml's
+# "Follow Back".
 appId: com.camphubph.camper
 env:
   MAESTRO_TEST_EMAIL: dummy@example.com
@@ -33,6 +42,15 @@ env:
 - tapOn: "Members"
 - assertVisible: "Rico Fernandez"
 - tapOn: "Feed"
+- tapOn:
+    text: "Comment"
+    index: 0
+- assertVisible: "Miguel Ibarra"
+- tapOn: "Write a comment..."
+- inputText: "Noted!"
+- tapOn: "Send comment"
+- assertVisible: "Noted!"
+- back
 - tapOn: "New post"
 - tapOn: "What's on your mind?"
 - inputText: "Anyone up for a Tanay run this weekend?"

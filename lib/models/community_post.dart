@@ -1,3 +1,5 @@
+import 'comment.dart';
+
 class CommunityFeedPost {
   const CommunityFeedPost({
     required this.id,
@@ -11,6 +13,7 @@ class CommunityFeedPost {
     this.isPinned = false,
     this.isModerator = false,
     this.isLiked = false,
+    this.comments = const [],
   });
 
   final String id;
@@ -25,18 +28,28 @@ class CommunityFeedPost {
   final bool isModerator;
   final bool isLiked;
 
-  CommunityFeedPost copyWith({bool? isLiked, int? likeCount}) =>
-      CommunityFeedPost(
-        id: id,
-        communityId: communityId,
-        authorName: authorName,
-        authorInitials: authorInitials,
-        timeAgo: timeAgo,
-        body: body,
-        likeCount: likeCount ?? this.likeCount,
-        commentCount: commentCount,
-        isPinned: isPinned,
-        isModerator: isModerator,
-        isLiked: isLiked ?? this.isLiked,
-      );
+  /// Loaded comments, tracked independently of [commentCount] — mirrors a
+  /// real backend where the count may include comments not yet loaded
+  /// client-side (same convention as `FriendPostItem`).
+  final List<Comment> comments;
+
+  CommunityFeedPost copyWith({
+    bool? isLiked,
+    int? likeCount,
+    int? commentCount,
+    List<Comment>? comments,
+  }) => CommunityFeedPost(
+    id: id,
+    communityId: communityId,
+    authorName: authorName,
+    authorInitials: authorInitials,
+    timeAgo: timeAgo,
+    body: body,
+    likeCount: likeCount ?? this.likeCount,
+    commentCount: commentCount ?? this.commentCount,
+    isPinned: isPinned,
+    isModerator: isModerator,
+    isLiked: isLiked ?? this.isLiked,
+    comments: comments ?? this.comments,
+  );
 }

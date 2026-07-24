@@ -1,9 +1,14 @@
+import '../models/comment.dart';
 import '../models/community_post.dart';
 
 /// Placeholder community posts, keyed by `Community.id`. There's no
 /// `community_posts` schema in Supabase yet — see docs/ux/wireframes.md
 /// "Community Feed" section. `batangas-beach-campers` is intentionally left
-/// without posts to exercise the empty state.
+/// without posts to exercise the empty state. A couple of posts carry
+/// real seeded `comments` so their `commentCount` isn't orphaned from empty
+/// content (same precedent as `sample_feed.dart`) — the rest are
+/// intentionally commentless to exercise Community Post Details' own empty
+/// state.
 final List<CommunityFeedPost> sampleCommunityPosts = [
   const CommunityFeedPost(
     id: 'cp1',
@@ -19,6 +24,20 @@ final List<CommunityFeedPost> sampleCommunityPosts = [
     commentCount: 5,
     isPinned: true,
     isModerator: true,
+    comments: [
+      Comment(
+        authorName: 'Miguel Ibarra',
+        authorInitials: 'MI',
+        text: 'Got it, will start tagging mine from now on.',
+        timeAgo: '2d',
+      ),
+      Comment(
+        authorName: 'Ana Dela Cruz',
+        authorInitials: 'AD',
+        text: 'Should we add a route-difficulty tag too?',
+        timeAgo: '1d',
+      ),
+    ],
   ),
   const CommunityFeedPost(
     id: 'cp2',
@@ -41,6 +60,14 @@ final List<CommunityFeedPost> sampleCommunityPosts = [
     body: 'Anyone have a good recovery gear checklist for beginners?',
     likeCount: 9,
     commentCount: 7,
+    comments: [
+      Comment(
+        authorName: 'Rico Fernandez',
+        authorInitials: 'RF',
+        text: 'Recovery strap, D-shackles, and a decent jack for a start.',
+        timeAgo: '20h',
+      ),
+    ],
   ),
   const CommunityFeedPost(
     id: 'cp4',

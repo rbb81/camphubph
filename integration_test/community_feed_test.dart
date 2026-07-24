@@ -56,6 +56,38 @@ void main() {
       expect(find.text('43'), findsOneWidget);
     });
 
+    testWidgets(
+      'tapping the comment icon opens Community Post Details and a new comment updates the count',
+      (tester) async {
+        await pumpCommunityFeedScreen(tester);
+
+        await tester.tap(
+          find.byKey(const Key('communityCommentButton_cp1')),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Miguel Ibarra'), findsOneWidget);
+
+        await tester.enterText(
+          find.byKey(const Key('commentField')),
+          'Noted!',
+        );
+        await tester.tap(find.byKey(const Key('sendCommentButton')));
+        await tester.pumpAndSettle();
+
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('communityPostCard_cp1')),
+            matching: find.text('6'),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
     testWidgets('composing a post adds it to the feed', (tester) async {
       await pumpCommunityFeedScreen(tester);
 
