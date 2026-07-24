@@ -3,7 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'package:camper/data/sample_communities.dart';
+import 'package:camper/data/sample_community_join_requests.dart';
+import 'package:camper/data/sample_community_members.dart';
 import 'package:camper/models/community.dart';
+import 'package:camper/models/community_join_request.dart';
+import 'package:camper/models/community_member.dart';
 import 'package:camper/screens/community_feed_screen.dart';
 
 final _joinedCommunity = sampleCommunities.firstWhere(
@@ -24,6 +28,23 @@ Future<void> pumpCommunityFeedScreen(
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  late List<CommunityMember> membersSnapshot;
+  late List<CommunityJoinRequest> requestsSnapshot;
+
+  setUp(() {
+    membersSnapshot = List.of(sampleCommunityMembers);
+    requestsSnapshot = List.of(sampleCommunityJoinRequests);
+  });
+
+  tearDown(() {
+    sampleCommunityMembers
+      ..clear()
+      ..addAll(membersSnapshot);
+    sampleCommunityJoinRequests
+      ..clear()
+      ..addAll(requestsSnapshot);
+  });
 
   group('Community Feed (real browser)', () {
     testWidgets('renders the pinned post and tab bar', (tester) async {
@@ -103,6 +124,36 @@ void main() {
 
       expect(find.text('Fresh trail report from today.'), findsOneWidget);
     });
+
+    testWidgets(
+      'approving a pending join request updates the roster on return',
+      (tester) async {
+        final moderatedCommunity = sampleCommunities.firstWhere(
+          (c) => c.id == 'bicol-volcano-trekkers',
+        );
+        await pumpCommunityFeedScreen(tester, community: moderatedCommunity);
+
+        await tester.tap(find.text('Members'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byKey(const Key('pendingJoinRequestsTile')),
+          findsOneWidget,
+        );
+        await tester.tap(find.byKey(const Key('pendingJoinRequestsTile')));
+        await tester.pumpAndSettle();
+
+        await tester.tap(
+          find.byKey(const Key('approveJoinRequestButton_jr1')),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+
+        expect(find.text('Carlo D.'), findsOneWidget);
+      },
+    );
 
     testWidgets(
       'requesting to join a private community shows Requested, then Joined after approval',

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:camper/data/sample_community_join_requests.dart';
+import 'package:camper/data/sample_community_members.dart';
 import 'package:camper/models/community.dart';
+import 'package:camper/models/community_join_request.dart';
+import 'package:camper/models/community_member.dart';
 import 'package:camper/screens/community_feed_screen.dart';
 
 const _joined = Community(
@@ -31,6 +35,18 @@ const _private = Community(
   isPrivate: true,
 );
 
+// Reuses the real seeded id so `_members`/pending requests resolve to the
+// actual roster (Ana Dela Cruz as moderator), same trick as `_joined`.
+const _moderated = Community(
+  id: 'bicol-volcano-trekkers',
+  name: 'Bicol Volcano Trekkers',
+  description: 'Mayon and Bulusan trail conditions, permits, and meetups.',
+  icon: Icons.terrain,
+  memberCount: 87,
+  isPrivate: true,
+  isJoined: true,
+);
+
 Future<void> pumpCommunityFeedScreen(
   WidgetTester tester, {
   Community community = _joined,
@@ -45,6 +61,23 @@ Future<void> pumpCommunityFeedScreen(
 }
 
 void main() {
+  late List<CommunityMember> membersSnapshot;
+  late List<CommunityJoinRequest> requestsSnapshot;
+
+  setUp(() {
+    membersSnapshot = List.of(sampleCommunityMembers);
+    requestsSnapshot = List.of(sampleCommunityJoinRequests);
+  });
+
+  tearDown(() {
+    sampleCommunityMembers
+      ..clear()
+      ..addAll(membersSnapshot);
+    sampleCommunityJoinRequests
+      ..clear()
+      ..addAll(requestsSnapshot);
+  });
+
   group('CommunityFeedScreen', () {
     testWidgets('shows the pinned post above regular posts', (tester) async {
       await pumpCommunityFeedScreen(tester);
@@ -82,6 +115,57 @@ void main() {
       expect(find.text('Rico Fernandez'), findsOneWidget);
       expect(find.text('MOD'), findsWidgets);
     });
+
+    testWidgets(
+      'the pending-requests entry point is absent for a non-moderator',
+      (tester) async {
+        await pumpCommunityFeedScreen(tester);
+
+        await tester.tap(find.text('Members'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byKey(const Key('pendingJoinRequestsTile')),
+          findsNothing,
+        );
+      },
+    );
+
+    testWidgets(
+      'the pending-requests entry point shows the count for a moderator',
+      (tester) async {
+        await pumpCommunityFeedScreen(tester, community: _moderated);
+
+        await tester.tap(find.text('Members'));
+        await tester.pumpAndSettle();
+
+        expect(find.byKey(const Key('pendingJoinRequestsTile')), findsOneWidget);
+        expect(find.text('Pending join requests'), findsOneWidget);
+        expect(find.text('2'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'approving a pending request from Members updates the roster on return',
+      (tester) async {
+        await pumpCommunityFeedScreen(tester, community: _moderated);
+
+        await tester.tap(find.text('Members'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('pendingJoinRequestsTile')));
+        await tester.pumpAndSettle();
+
+        await tester.tap(
+          find.byKey(const Key('approveJoinRequestButton_jr1')),
+        );
+        await tester.pump();
+
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+
+        expect(find.text('Carlo D.'), findsOneWidget);
+      },
+    );
 
     testWidgets('liking a post fills the heart and bumps the count', (
       tester,

@@ -1,0 +1,37 @@
+# Pending join requests are reached via Community Feed's Members tab, only
+# for a community the current user (Ana Dela Cruz) moderates — "Bicol
+# Volcano Trekkers" is the one seeded moderator community (see
+# sample_community_members.dart). See home_smoke.yaml for the
+# login-credential override instructions.
+#
+# "Approve"/"Decline" would collide if this flow ever taps more than one
+# request card, since both seeded requests (Carlo D., Ate Baby) share the
+# same button labels — anchor with `index: N` if extended, same
+# disambiguation precedent as follow_list_flow.yaml's "Follow Back".
+appId: com.camphubph.camper
+env:
+  MAESTRO_TEST_EMAIL: dummy@example.com
+  MAESTRO_TEST_PASSWORD: dummy-password
+---
+- launchApp
+- tapOn: "Log in"
+- tapOn: "name@example.com"
+- inputText: ${MAESTRO_TEST_EMAIL}
+- tapOn: "Your password"
+- inputText: ${MAESTRO_TEST_PASSWORD}
+- tapOn:
+    text: "Log in"
+    index: 1
+- tapOn: "Communities"
+- tapOn: "Bicol Volcano Trekkers"
+- tapOn: "Members"
+- assertVisible: "Pending join requests"
+- tapOn: "Pending join requests"
+- assertVisible: "Carlo D."
+- assertVisible: "Ate Baby"
+- tapOn:
+    text: "Approve"
+    index: 0
+- assertNotVisible: "Carlo D."
+- back
+- assertVisible: "Carlo D."

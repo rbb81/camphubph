@@ -52,4 +52,16 @@ final List<CommunityMember> sampleCommunityMembers = [
     initials: 'BV',
     role: CommunityRole.member,
   ),
+  const CommunityMember(
+    communityId: 'bicol-volcano-trekkers',
+    name: 'Ana Dela Cruz',
+    initials: 'AD',
+    role: CommunityRole.moderator,
+  ),
+  const CommunityMember(
+    communityId: 'bicol-volcano-trekkers',
+    name: 'Rico P.',
+    initials: 'RP',
+    role: CommunityRole.member,
+  ),
 ];

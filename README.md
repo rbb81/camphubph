@@ -2,7 +2,7 @@
 
 Camper is a camping-community app for the Philippines — discover camps, share trips, and connect with other campers. Built with Flutter so the same codebase targets web, Android, and iOS. Product/UX planning docs live in [`docs/`](docs/).
 
-Currently implemented (see [docs/ux/wireframes.md](docs/ux/wireframes.md) for the full per-screen spec and status): registration, login, and forgot-password screens (responsive, web + mobile) wired to Supabase Auth; a Home Feed (mixed feed, create post, likes/comments, bottom tab bar); Notifications (follow requests, likes, comments); a global Search screen (camps, communities, people, locations, activities) reachable from Home/Discover/Communities; Discover → Camp Results → Camp Details (with a working Reviews/write-a-review flow); a Map screen showing a pin for every campsite (OpenStreetMap via `flutter_map`, no API key needed); Communities → Community Feed (with working post comments), plus creating a new community with a public/private setting; a Profile screen (own-profile view + Edit Profile form, Followers/Following lists); and a Settings screen (live Light/Dark/System theme switching, session-only notification/privacy toggles, Log Out). All content screens render from static sample data (`lib/data/`) — there's no real Supabase schema for posts/camps/reviews/communities/profiles/notifications yet.
+Currently implemented (see [docs/ux/wireframes.md](docs/ux/wireframes.md) for the full per-screen spec and status): registration, login, and forgot-password screens (responsive, web + mobile) wired to Supabase Auth; a Home Feed (mixed feed, create post, likes/comments, bottom tab bar); Notifications (follow requests, likes, comments); a global Search screen (camps, communities, people, locations, activities) reachable from Home/Discover/Communities; Discover → Camp Results → Camp Details (with a working Reviews/write-a-review flow); a Map screen showing a pin for every campsite (OpenStreetMap via `flutter_map`, no API key needed); Communities → Community Feed (with working post comments and moderator join-request review), plus creating a new community with a public/private setting; a Profile screen (own-profile view + Edit Profile form, Followers/Following lists); and a Settings screen (live Light/Dark/System theme switching, session-only notification/privacy toggles, Log Out). All content screens render from static sample data (`lib/data/`) — there's no real Supabase schema for posts/camps/reviews/communities/profiles/notifications yet.
 
 ## Prerequisites
 
@@ -137,8 +137,9 @@ Covers:
 - [`test/post_details_screen_test.dart`](test/post_details_screen_test.dart) — post/comment thread renders, like toggle, adding a comment, tapping an `@mention` in a comment opens that person's Other User Profile
 - [`test/notifications_screen_test.dart`](test/notifications_screen_test.dart) — mixed read/unread rows render, Accept/Decline a follow request flips it to an Accepted/Declined chip, tapping a like/comment notification marks it read and opens Post Details, Mark all as read, empty state
 - [`test/communities_screen_test.dart`](test/communities_screen_test.dart) — Your/Suggested sections render, join/request-to-join/leave, private-community badge, tap-through to Community Feed, create-community flow inserts at the top, search opens the Search screen
-- [`test/community_feed_screen_test.dart`](test/community_feed_screen_test.dart) — pinned posts, Rules/Members tabs, like toggle, compose (gated on membership), request-to-join → approval flow, the comment icon opens Community Post Details and a new comment updates the feed card's count
+- [`test/community_feed_screen_test.dart`](test/community_feed_screen_test.dart) — pinned posts, Rules/Members tabs, like toggle, compose (gated on membership), request-to-join → approval flow, the comment icon opens Community Post Details and a new comment updates the feed card's count, the "Pending join requests" entry point is moderator-only and shows the pending count, approving a request there updates the Members roster on return
 - [`test/community_post_details_screen_test.dart`](test/community_post_details_screen_test.dart) — full post + existing comments render, like toggle, submitting a comment appends it and bumps the count, an empty comment is ignored, empty state with no comments, popping returns the updated post
+- [`test/pending_join_requests_screen_test.dart`](test/pending_join_requests_screen_test.dart) — seeded requests render, empty state, Approve adds a real `CommunityMember` and pops the updated community (bumped member count), Decline removes the request and pops `null` since nothing changed
 - [`test/create_community_screen_test.dart`](test/create_community_screen_test.dart) — name/description validation, Public/Private toggle, cancel pops null
 - [`test/schedule_trip_screen_test.dart`](test/schedule_trip_screen_test.dart) — missing-dates validation, an overlapping date range shows a named conflict error, a valid non-conflicting range pops a `Trip` and appends it to `sampleTrips`
 - [`test/trip_planner_screen_test.dart`](test/trip_planner_screen_test.dart) — seeded trips grouped into Upcoming/Past and sorted by date, tap-through to Trip Details, canceling a trip removes it and shows a confirmation snackbar, empty state
@@ -238,9 +239,10 @@ On Windows, run that inside WSL or Git Bash, then make sure `~/.maestro/bin` (or
    maestro test .maestro/communities_smoke.yaml
    maestro test .maestro/community_feed_smoke.yaml
    maestro test .maestro/create_community_flow.yaml
+   maestro test .maestro/pending_join_requests_flow.yaml
    ```
 
-   `communities_smoke.yaml` checks the Your/Suggested sections and joins a suggested community. `community_feed_smoke.yaml` opens an already-joined community, checks its Rules/Members tabs, opens the pinned post's comments (tapped by its `Tooltip`, `index: 0` since every post row shares the same "Comment" label) and adds one, then composes a post. `create_community_flow.yaml` checks name/description validation and the Public/Private toggle, then creates a community.
+   `communities_smoke.yaml` checks the Your/Suggested sections and joins a suggested community. `community_feed_smoke.yaml` opens an already-joined community, checks its Rules/Members tabs, opens the pinned post's comments (tapped by its `Tooltip`, `index: 0` since every post row shares the same "Comment" label) and adds one, then composes a post. `create_community_flow.yaml` checks name/description validation and the Public/Private toggle, then creates a community. `pending_join_requests_flow.yaml` opens "Bicol Volcano Trekkers" (the seeded community the test account moderates), opens Members → Pending join requests, approves one, and confirms the roster updates.
 
    ```bash
    maestro test .maestro/create_post_flow.yaml
@@ -307,7 +309,7 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    chromedriver --port=4444
    ```
 
-3. In another terminal, run a flow. Every file below has been run against a real Chrome window in this environment (chromedriver 150.x) — **all 28 currently pass**:
+3. In another terminal, run a flow. Every file below has been run against a real Chrome window in this environment (chromedriver 150.x) — **all 29 currently pass**:
 
    ```bash
    flutter drive --driver=test_driver/integration_test.dart --target=integration_test/<file>.dart -d chrome
@@ -329,7 +331,8 @@ Maestro can't drive Flutter Web — it renders to a `<canvas>`, not a normal DOM
    | `notifications_test.dart` | Pumps `NotificationsScreen` directly (same pattern as `home_test.dart`); seeded notifications render; accepting a follow request shows an Accepted chip; tapping a like notification opens Post Details; Mark all as read clears the unread indicators. |
    | `profile_test.dart`, `edit_profile_test.dart` | Identity block/tabs render, tab switching, Edit Profile and Trip Planner navigation, editing the profile from within Settings updates Profile on return, the followers/following stats open the Followers/Following list; tapping a post opens its detail view, a saved camp opens Camp Details, and a completed trip opens its detail view whose View Camp button falls back to a placeholder Camp; form pre-populates and validates. |
    | `follow_list_test.dart` | Followers shows only `followsMe` users; Following shows an empty state when no one is followed; tapping a row opens Other User Profile; Follow Back cycles to Requested then auto-approves to Following. |
-   | `communities_test.dart`, `community_feed_test.dart`, `create_community_test.dart` | Your/Suggested sections, join/leave, tap-through to Community Feed, create-community flow; pinned posts, Rules/Members tabs, like toggle, compose, the comment icon opens Community Post Details and a new comment updates the feed card's count; name/description validation and Public/Private toggle. |
+   | `communities_test.dart`, `community_feed_test.dart`, `create_community_test.dart` | Your/Suggested sections, join/leave, tap-through to Community Feed, create-community flow; pinned posts, Rules/Members tabs, like toggle, compose, the comment icon opens Community Post Details and a new comment updates the feed card's count, approving a pending join request updates the roster; name/description validation and Public/Private toggle. |
+   | `pending_join_requests_test.dart` | Seeded requests render; Approve adds a real member and removes the request; Decline removes the request without adding a member. |
    | `community_post_details_test.dart` | Liking bumps the like count; submitting a comment appends it to the thread. |
    | `settings_test.dart` | All grouped sections render; selecting Dark live-updates `themeModeNotifier`; toggling Follow requests flips `sampleSettings`; Log Out's confirmation dialog clears the session and navigates away. |
 
@@ -371,8 +374,8 @@ lib/services/auth_service.dart  Supabase Auth, with a dummy fallback when unconf
 lib/theme/app_theme.dart    light/dark theme (nature-inspired palette)
 lib/widgets/auth_layout.dart shared layout for register/login/forgot-password
 lib/widgets/hashtag_mention_text.dart tappable #hashtag/@mention rendering, shared across post/comment screens
-lib/screens/                landing, auth, home, notifications, search, discover/camp results/camp details/write review, map, schedule trip/trip planner/trip details, create post/post details, communities/community feed/community post details/create community, profile/edit profile/settings/follow list screens
-lib/models/                 content types (HomeFeedItem, AppNotification, Camp, Review, Comment, Profile, Trip, Community, CommunityMember, CommunityPost, AppSettings, FollowableUser)
+lib/screens/                landing, auth, home, notifications, search, discover/camp results/camp details/write review, map, schedule trip/trip planner/trip details, create post/post details, communities/community feed/community post details/create community/pending join requests, profile/edit profile/settings/follow list screens
+lib/models/                 content types (HomeFeedItem, AppNotification, Camp, Review, Comment, Profile, Trip, Community, CommunityMember, CommunityPost, CommunityJoinRequest, AppSettings, FollowableUser)
 lib/data/                   placeholder sample content for every screen above (no matching Supabase schema yet)
 test/                       unit/widget tests
 integration_test/           Flutter driver end-to-end tests (web)

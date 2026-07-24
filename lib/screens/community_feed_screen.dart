@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../data/sample_community_join_requests.dart';
 import '../data/sample_community_members.dart';
 import '../data/sample_community_posts.dart';
 import '../data/sample_profile.dart';
@@ -9,6 +10,7 @@ import '../models/community_post.dart';
 import '../theme/app_theme.dart';
 import '../widgets/hashtag_mention_text.dart';
 import 'community_post_details_screen.dart';
+import 'pending_join_requests_screen.dart';
 
 class CommunityFeedScreen extends StatefulWidget {
   const CommunityFeedScreen({super.key, required this.community});
@@ -124,6 +126,30 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen>
     if (updated != null) {
       final index = _posts.indexWhere((p) => p.id == updated.id);
       if (index != -1) setState(() => _posts[index] = updated);
+    }
+  }
+
+  bool get _isModerator => _members.any(
+    (m) => m.name == sampleProfile.name && m.role == CommunityRole.moderator,
+  );
+
+  int get _pendingRequestCount => sampleCommunityJoinRequests
+      .where((r) => r.communityId == _community.id)
+      .length;
+
+  Future<void> _openPendingRequests() async {
+    final updated = await Navigator.of(context).push<Community>(
+      MaterialPageRoute(
+        builder: (_) => PendingJoinRequestsScreen(community: _community),
+      ),
+    );
+    if (updated != null) {
+      setState(() {
+        _community = updated;
+        _members = sampleCommunityMembers
+            .where((m) => m.communityId == _community.id)
+            .toList();
+      });
     }
   }
 
@@ -284,7 +310,12 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen>
                     onComment: _openPostDetails,
                   ),
                   _RulesTab(rules: _community.rules),
-                  _MembersTab(members: _members),
+                  _MembersTab(
+                    members: _members,
+                    isModerator: _isModerator,
+                    pendingCount: _pendingRequestCount,
+                    onManageRequests: _openPendingRequests,
+                  ),
                 ],
               ),
             ),
@@ -529,20 +560,20 @@ class _RulesTab extends StatelessWidget {
 }
 
 class _MembersTab extends StatelessWidget {
-  const _MembersTab({required this.members});
+  const _MembersTab({
+    required this.members,
+    this.isModerator = false,
+    this.pendingCount = 0,
+    this.onManageRequests,
+  });
 
   final List<CommunityMember> members;
+  final bool isModerator;
+  final int pendingCount;
+  final VoidCallback? onManageRequests;
 
   @override
   Widget build(BuildContext context) {
-    if (members.isEmpty) {
-      return const Center(
-        child: Text(
-          'No members to show yet.',
-          style: TextStyle(color: Colors.grey),
-        ),
-      );
-    }
     final moderators = members
         .where((m) => m.role == CommunityRole.moderator)
         .toList();
@@ -550,24 +581,52 @@ class _MembersTab extends StatelessWidget {
         .where((m) => m.role == CommunityRole.member)
         .toList();
     final ordered = [...moderators, ...regular];
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: ordered.length,
-      separatorBuilder: (_, _) => const Divider(),
-      itemBuilder: (context, index) {
-        final member = ordered[index];
-        return ListTile(
-          leading: CircleAvatar(child: Text(member.initials)),
-          title: Text(member.name),
-          trailing: member.role == CommunityRole.moderator
-              ? _ModeratorBadge(
-                  accent: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.brandDark
-                      : AppColors.brand,
+
+    return Column(
+      children: [
+        if (isModerator)
+          ListTile(
+            key: const Key('pendingJoinRequestsTile'),
+            leading: Badge(
+              label: Text('$pendingCount'),
+              isLabelVisible: pendingCount > 0,
+              child: const Icon(Icons.pending_actions),
+            ),
+            title: const Text('Pending join requests'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: onManageRequests,
+          ),
+        if (isModerator) const Divider(height: 1),
+        Expanded(
+          child: ordered.isEmpty
+              ? const Center(
+                  child: Text(
+                    'No members to show yet.',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 )
-              : null,
-        );
-      },
+              : ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: ordered.length,
+                  separatorBuilder: (_, _) => const Divider(),
+                  itemBuilder: (context, index) {
+                    final member = ordered[index];
+                    return ListTile(
+                      leading: CircleAvatar(child: Text(member.initials)),
+                      title: Text(member.name),
+                      trailing: member.role == CommunityRole.moderator
+                          ? _ModeratorBadge(
+                              accent: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? AppColors.brandDark
+                                  : AppColors.brand,
+                            )
+                          : null,
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 }

@@ -103,4 +103,17 @@ final List<Community> sampleCommunities = [
       'No unauthorized tour operator ads.',
     ],
   ),
+  const Community(
+    id: 'bicol-volcano-trekkers',
+    name: 'Bicol Volcano Trekkers',
+    description: 'Mayon and Bulusan trail conditions, permits, and meetups.',
+    icon: Icons.terrain,
+    memberCount: 87,
+    isPrivate: true,
+    isJoined: true,
+    rules: [
+      'Share permit/guide contact info responsibly.',
+      'No unauthorized tour operator ads.',
+    ],
+  ),
 ];
