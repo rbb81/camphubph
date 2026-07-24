@@ -11,6 +11,7 @@ import '../models/trip.dart';
 import '../theme/app_theme.dart';
 import 'map_screen.dart';
 import 'message_thread_screen.dart';
+import 'photo_lightbox_screen.dart';
 import 'schedule_trip_screen.dart';
 import 'write_review_screen.dart';
 
@@ -642,9 +643,18 @@ class _PhotosTab extends StatelessWidget {
         mainAxisSpacing: 8,
       ),
       itemCount: photos.length,
-      itemBuilder: (context, index) => ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.memory(photos[index], fit: BoxFit.cover),
+      itemBuilder: (context, index) => InkWell(
+        key: Key('campPhotoTile_$index'),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) =>
+                PhotoLightboxScreen(photos: photos, initialIndex: index),
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.memory(photos[index], fit: BoxFit.cover),
+        ),
       ),
     );
   }

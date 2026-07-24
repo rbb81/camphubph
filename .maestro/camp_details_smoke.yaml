@@ -3,6 +3,15 @@
 #
 # Uses the "Camping Grounds" category's only camp (Mt. Daraitan campsite),
 # which already has 2 seeded reviews, so the Reviews tab isn't empty.
+#
+# Photos tab is checked only for its empty state — none of the seeded
+# reviews carry real photo bytes (Uint8List image data can't be embedded as
+# a Dart const literal), so a populated grid + the photo lightbox
+# (lib/screens/photo_lightbox_screen.dart) can only be reached by actually
+# picking a photo via Write a Review's image_picker flow, which opens the
+# native OS gallery UI — not reliably drivable by Maestro (same limitation
+# noted in create_post_flow.yaml). Covered by widget/chromedriver tests
+# instead, which inject real decodable bytes directly into sampleReviews.
 appId: com.camphubph.camper
 env:
   MAESTRO_TEST_EMAIL: dummy@example.com
@@ -25,6 +34,8 @@ env:
 - assertVisible: "Add to Trip"
 - tapOn: "Reviews"
 - assertVisible: "Write a review"
+- tapOn: "Photos"
+- assertVisible: "No photos yet."
 - tapOn: "Map"
 - assertVisible: "View on Map"
 - tapOn: "View on Map"

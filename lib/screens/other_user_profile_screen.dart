@@ -16,6 +16,7 @@ import '../models/review.dart';
 import '../theme/app_theme.dart';
 import 'camp_details_screen.dart';
 import 'message_thread_screen.dart';
+import 'photo_lightbox_screen.dart';
 import 'post_details_screen.dart';
 
 class OtherUserProfileScreen extends StatefulWidget {
@@ -421,9 +422,18 @@ class _PhotosTab extends StatelessWidget {
         mainAxisSpacing: 8,
       ),
       itemCount: photos.length,
-      itemBuilder: (context, index) => ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.memory(photos[index], fit: BoxFit.cover),
+      itemBuilder: (context, index) => InkWell(
+        key: Key('profilePhotoTile_$index'),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) =>
+                PhotoLightboxScreen(photos: photos, initialIndex: index),
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.memory(photos[index], fit: BoxFit.cover),
+        ),
       ),
     );
   }

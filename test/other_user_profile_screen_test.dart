@@ -1,14 +1,26 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:camper/data/sample_message_threads.dart';
 import 'package:camper/data/sample_other_users.dart';
+import 'package:camper/data/sample_reviews.dart';
 import 'package:camper/models/followable_user.dart';
 import 'package:camper/models/message_thread.dart';
+import 'package:camper/models/review.dart';
 import 'package:camper/screens/other_user_profile_screen.dart';
+import 'package:camper/screens/photo_lightbox_screen.dart';
 
 FollowableUser _userNamed(String name) =>
     sampleOtherUsers.firstWhere((u) => u.profile.name == name);
+
+// A real, minimal 1x1 transparent PNG — Image.memory needs decodable bytes.
+final Uint8List _pixel = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhf'
+  'DwAChwGA60e6kgAAAABJRU5ErkJggg==',
+);
 
 Future<void> _pumpProfile(WidgetTester tester, FollowableUser user) async {
   // The Posts/Photos/Reviews tabs use sliver-based lists/grids, which only
@@ -27,10 +39,12 @@ Future<void> _pumpProfile(WidgetTester tester, FollowableUser user) async {
 void main() {
   late List<FollowableUser> otherUsersSnapshot;
   late List<MessageThread> threadsSnapshot;
+  late List<Review> reviewsSnapshot;
 
   setUp(() {
     otherUsersSnapshot = List.of(sampleOtherUsers);
     threadsSnapshot = List.of(sampleMessageThreads);
+    reviewsSnapshot = List.of(sampleReviews);
   });
 
   tearDown(() {
@@ -40,6 +54,9 @@ void main() {
     sampleMessageThreads
       ..clear()
       ..addAll(threadsSnapshot);
+    sampleReviews
+      ..clear()
+      ..addAll(reviewsSnapshot);
   });
 
   group('OtherUserProfileScreen', () {
@@ -200,6 +217,35 @@ void main() {
 
       expect(find.text('No photos yet.'), findsOneWidget);
     });
+
+    testWidgets(
+      'tapping a Photos tab tile opens the fullscreen photo lightbox',
+      (tester) async {
+        sampleReviews.add(
+          Review(
+            id: 'r_test_photo',
+            campId: 'taal-lake',
+            authorName: 'Rico P.',
+            authorInitials: 'RP',
+            rating: 5,
+            visitDate: DateTime(2026, 6, 1),
+            postedAgo: '1d',
+            photoBytes: _pixel,
+          ),
+        );
+
+        await _pumpProfile(tester, _userNamed('Rico P.'));
+
+        await tester.tap(find.text('Photos'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const Key('profilePhotoTile_0')));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(PhotoLightboxScreen), findsOneWidget);
+        expect(find.text('1 of 1'), findsOneWidget);
+      },
+    );
 
     testWidgets(
       'Reviews tab shows this user\'s reviews and taps through to Camp Details',
